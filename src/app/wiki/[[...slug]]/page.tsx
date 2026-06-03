@@ -11,22 +11,22 @@ export default async function WikiPage({ params }: WikiPageProps) {
 
   return (
     <main className="wiki-shell">
-      <p className="wiki-badge">Wiki subdomain</p>
+      <p className="wiki-badge">Không gian wiki</p>
       <h1 className="wiki-title">Anshome Wiki</h1>
       <p className="wiki-text">
-        Route hien tai: <strong>{hasPath ? `/${currentPath}` : "/"}</strong>
+        Đường dẫn hiện tại: <strong>{hasPath ? `/${currentPath}` : "/"}</strong>
       </p>
       <p className="wiki-text">
-        Trang nay duoc phuc vu boi route <code>/wiki/[[...slug]]</code> de chay duoc tren host{" "}
-        <code>wiki.*</code> khi local.
+        Trang này được phục vụ bởi route <code>/wiki/[[...slug]]</code> để chạy được trên host{" "}
+        <code>wiki.*</code> khi chạy cục bộ.
       </p>
 
       <div className="wiki-links">
         <Link href="/" className="wiki-link">
-          Ve trang chu
+          Về trang chủ
         </Link>
         <Link href="/wiki/tai-chinh-bat-dong-san" className="wiki-link">
-          Mo thu mot bai wiki
+          Mở thử một bài wiki
         </Link>
       </div>
     </main>

@@ -13,9 +13,9 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "Anshome UI | Tim kiem nha dat",
+  title: "Anshome | Tìm kiếm nhà đất",
   description:
-    "Mau giao dien cong thong tin bat dong san voi thanh tim kiem, tin dang, du an va tin tuc.",
+    "Cổng thông tin bất động sản với tìm kiếm nhà đất, tin đăng, dự án và tin tức thị trường.",
 };
 
 export default function RootLayout({

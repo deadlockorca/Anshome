@@ -6,6 +6,13 @@ node_modules/
 # Next.js output
 .next/
 out/
+tsconfig.tsbuildinfo
+
+# generated code
+src/generated/prisma/
+
+# local mysql dev data
+.mysql/
 
 # test and coverage output
 coverage/
@@ -14,7 +21,6 @@ playwright-report/
 
 # env files
 .env*
-!.env.example
 
 # logs
 npm-debug.log*

@@ -1,0 +1,456 @@
+:global(.seller-login-page) {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 24px;
+  background: rgba(20, 22, 27, 0.58);
+  color: #2b2c33;
+}
+
+:global(.seller-login-shell) {
+  width: min(100%, 1110px);
+  min-height: min(720px, calc(100vh - 80px));
+  display: grid;
+  grid-template-columns: minmax(360px, 0.9fr) minmax(430px, 1.1fr);
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 32px 100px rgba(20, 28, 45, 0.36);
+}
+
+:global(.seller-login-visual) {
+  display: flex;
+  min-height: 640px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 42px 34px;
+  background:
+    repeating-linear-gradient(-45deg, rgba(230, 53, 44, 0.08) 0 3px, rgba(230, 53, 44, 0) 3px 12px),
+    #fff0ef;
+}
+
+:global(.seller-login-brand) {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  color: #e6352c;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+:global(.seller-login-brand svg) {
+  flex: 0 0 auto;
+}
+
+:global(.seller-login-brand span) {
+  display: grid;
+  gap: 3px;
+}
+
+:global(.seller-login-brand small) {
+  color: #343741;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+:global(.seller-illustration) {
+  position: relative;
+  height: 330px;
+  margin: 24px 0 10px;
+}
+
+:global(.seller-sofa) {
+  position: absolute;
+  left: 54px;
+  right: 42px;
+  bottom: 58px;
+  height: 92px;
+  border-radius: 26px 26px 13px 13px;
+  background: #e4332b;
+  box-shadow: inset 0 -18px 0 rgba(130, 16, 16, 0.18);
+}
+
+:global(.seller-sofa::before),
+:global(.seller-sofa::after) {
+  content: "";
+  position: absolute;
+  bottom: -23px;
+  width: 34px;
+  height: 27px;
+  border-radius: 8px;
+  background: #8d2219;
+}
+
+:global(.seller-sofa::before) {
+  left: 30px;
+}
+
+:global(.seller-sofa::after) {
+  right: 30px;
+}
+
+:global(.seller-sofa span) {
+  position: absolute;
+  left: 78px;
+  top: -20px;
+  width: 98px;
+  height: 60px;
+  border-radius: 13px;
+  background: #f1695c;
+}
+
+:global(.seller-lamp) {
+  position: absolute;
+  left: 76px;
+  bottom: 145px;
+  width: 58px;
+  height: 54px;
+  border-radius: 10px 10px 20px 20px;
+  background: #e6b041;
+  clip-path: polygon(25% 0, 75% 0, 100% 100%, 0 100%);
+}
+
+:global(.seller-lamp::after) {
+  content: "";
+  position: absolute;
+  left: 26px;
+  top: 52px;
+  width: 6px;
+  height: 94px;
+  background: #9b6f25;
+}
+
+:global(.seller-person) {
+  position: absolute;
+  right: 88px;
+  bottom: 136px;
+  width: 58px;
+  height: 78px;
+  border-radius: 28px 28px 18px 18px;
+  background: #ffb2a8;
+}
+
+:global(.seller-person::before) {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: -35px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #8b1410;
+}
+
+:global(.seller-person::after) {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 25px;
+  width: 50px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ffb2a8;
+  transform: rotate(36deg);
+}
+
+:global(.seller-laptop) {
+  position: absolute;
+  left: 165px;
+  bottom: 135px;
+  width: 76px;
+  height: 50px;
+  border-radius: 6px;
+  background: #13a4a8;
+  transform: skew(-6deg);
+}
+
+:global(.seller-laptop::after) {
+  content: "";
+  position: absolute;
+  left: -8px;
+  bottom: -12px;
+  width: 96px;
+  height: 10px;
+  border-radius: 999px;
+  background: #126b72;
+}
+
+:global(.seller-paper) {
+  position: absolute;
+  bottom: 34px;
+  width: 70px;
+  height: 34px;
+  border-radius: 4px;
+  background: #ffffff;
+  border: 3px solid #efc4bd;
+}
+
+:global(.seller-paper-one) {
+  left: 158px;
+  transform: rotate(-10deg);
+}
+
+:global(.seller-paper-two) {
+  left: 238px;
+  transform: rotate(13deg);
+}
+
+:global(.seller-login-copy h1) {
+  margin: 0;
+  color: #2b2c33;
+  font-size: 28px;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+:global(.seller-login-copy p) {
+  max-width: 390px;
+  margin: 10px 0 0;
+  color: #3f434d;
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 800;
+}
+
+:global(.seller-login-card) {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 58px 44px 42px;
+  background: #ffffff;
+}
+
+:global(.seller-login-close) {
+  position: absolute;
+  top: 22px;
+  right: 34px;
+  color: #a2a5ad;
+  font-size: 46px;
+  line-height: 1;
+  font-weight: 300;
+}
+
+:global(.seller-login-close:hover) {
+  color: #2b2c33;
+}
+
+:global(.seller-card-eyebrow) {
+  margin: 0;
+  color: #2b2c33;
+  font-size: 20px;
+  font-weight: 850;
+}
+
+:global(.seller-login-card h2) {
+  margin: 8px 0 32px;
+  color: #2b2c33;
+  font-size: 36px;
+  line-height: 1.16;
+  font-weight: 950;
+}
+
+:global(.seller-login-form) {
+  display: grid;
+  gap: 14px;
+}
+
+:global(.seller-field) {
+  min-height: 66px;
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  align-items: center;
+  padding: 0 18px 0 12px;
+  border: 1.5px solid #d4d6dc;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+:global(.seller-field:focus-within) {
+  border-color: #2b2c33;
+  box-shadow: 0 0 0 1px #2b2c33 inset;
+}
+
+:global(.seller-field span) {
+  color: #2b2c33;
+  font-size: 24px;
+  text-align: center;
+}
+
+:global(.seller-field input) {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #2b2c33;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+:global(.seller-field input::placeholder) {
+  color: #a5a7ae;
+}
+
+:global(.seller-primary) {
+  min-height: 66px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 10px;
+  background: #e9362f;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+:global(.seller-primary:disabled) {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+:global(.seller-error) {
+  margin: 0;
+  border: 1px solid #f1b8b4;
+  border-radius: 10px;
+  background: #fff4f2;
+  padding: 10px 12px;
+  color: #a62b24;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+:global(.seller-form-row) {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  color: #343741;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+:global(.seller-form-row label) {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+:global(.seller-form-row input) {
+  width: 22px;
+  height: 22px;
+  accent-color: #e9362f;
+}
+
+:global(.seller-form-row button),
+:global(.seller-register-note a) {
+  border: 0;
+  background: transparent;
+  color: #e9362f;
+  padding: 0;
+  font: inherit;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+:global(.seller-or) {
+  margin: 28px 0 20px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  color: #a0a3ab;
+  font-size: 17px;
+  font-weight: 850;
+}
+
+:global(.seller-or span) {
+  height: 1px;
+  background: #eceff3;
+}
+
+:global(.seller-or p) {
+  margin: 0;
+}
+
+:global(.seller-socials) {
+  display: grid;
+  gap: 14px;
+}
+
+:global(.seller-socials button) {
+  min-height: 60px;
+  border: 1.5px solid #d7d9df;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2b2c33;
+  font-size: 18px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+:global(.seller-socials button:hover) {
+  border-color: #b9bdc6;
+  background: #fafafa;
+}
+
+:global(.seller-socials span) {
+  display: inline-flex;
+  width: 28px;
+  justify-content: center;
+  margin-right: 10px;
+}
+
+:global(.seller-google) {
+  color: #4285f4;
+}
+
+:global(.seller-register-note) {
+  margin: 34px 0 0;
+  text-align: center;
+  color: #2b2c33;
+  font-size: 16px;
+  font-weight: 850;
+}
+
+:global(.seller-browse-link) {
+  display: none;
+}
+
+@media (max-width: 920px) {
+  :global(.seller-login-page) {
+    padding: 14px;
+  }
+
+  :global(.seller-login-shell) {
+    width: min(100%, 540px);
+    min-height: 0;
+    grid-template-columns: 1fr;
+  }
+
+  :global(.seller-login-visual) {
+    min-height: 210px;
+    padding: 26px;
+  }
+
+  :global(.seller-illustration) {
+    display: none;
+  }
+
+  :global(.seller-login-copy h1) {
+    font-size: 24px;
+  }
+
+  :global(.seller-login-copy p) {
+    font-size: 15px;
+  }
+
+  :global(.seller-login-card) {
+    padding: 42px 24px 30px;
+  }
+
+  :global(.seller-login-card h2) {
+    font-size: 30px;
+  }
+}
