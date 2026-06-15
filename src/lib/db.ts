@@ -1,5 +1,6 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "@/generated/prisma/client";
+import { createMariaDbPoolConfig } from "@/lib/mariadb-config";
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
@@ -11,7 +12,7 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is required to initialize Prisma.");
 }
 
-const adapter = new PrismaMariaDb(databaseUrl);
+const adapter = new PrismaMariaDb(createMariaDbPoolConfig(databaseUrl));
 
 export const db =
   globalForPrisma.prisma ??

@@ -1,6 +1,7 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient, type CategoryTransactionType, type LocationType, type ProjectStatus, type RoleCode } from "../src/generated/prisma/client";
 import { hashPassword } from "../src/lib/auth/password";
+import { createMariaDbPoolConfig } from "../src/lib/mariadb-config";
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -9,7 +10,7 @@ if (!databaseUrl) {
 }
 
 const prisma = new PrismaClient({
-  adapter: new PrismaMariaDb(databaseUrl),
+  adapter: new PrismaMariaDb(createMariaDbPoolConfig(databaseUrl)),
 });
 
 const roles: Array<{ code: RoleCode; name: string; description: string }> = [
