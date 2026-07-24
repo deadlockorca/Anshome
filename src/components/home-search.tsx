@@ -67,10 +67,13 @@ export function HomeSearch() {
           <span className="input-icon">
             <SearchIcon />
           </span>
-          <input name="q" type="text" placeholder="VD: Bán nhà Bình Thạnh dưới 5 tỷ" className="search-input" />
+          <input name="q" type="text" placeholder="Nhà riêng Thủ Đức dưới 5 tỷ" className="search-input" />
         </label>
         <button type="submit" className="search-btn">
-          Tìm kiếm
+          <span className="search-btn-label">Tìm kiếm</span>
+          <span className="search-btn-icon">
+            <SearchIcon />
+          </span>
         </button>
 
         {isPanelOpen ? (
