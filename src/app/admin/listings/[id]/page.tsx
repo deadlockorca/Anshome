@@ -2,9 +2,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { approveListing, rejectListing } from "@/app/tai-khoan/tin-dang/listing-actions";
+import { approveListing, deleteListingByAdmin, hideListingByAdmin, rejectListing } from "@/app/tai-khoan/tin-dang/listing-actions";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ListingMediaSection } from "@/components/listings/listing-media-section";
+import { listingModeratorRoleCodes } from "@/lib/auth/roles";
+import { getCurrentSession, hasRole } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,8 @@ const moderationActionLabel: Record<string, string> = {
   submit: "Gửi duyệt",
   approve: "Duyệt tin",
   reject: "Từ chối",
+  hide: "Ẩn tin",
+  delete: "Xóa tin",
 };
 
 export default async function AdminListingDetailPage({
@@ -31,7 +35,7 @@ export default async function AdminListingDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const [{ id }, currentSession] = await Promise.all([params, getCurrentSession()]);
   const listing = await db.listing.findUnique({
     where: { id },
     include: {
@@ -79,6 +83,9 @@ export default async function AdminListingDetailPage({
 
   const ownerName = listing.owner.profile?.displayName ?? listing.owner.email ?? listing.owner.phone ?? "Người dùng";
   const canModerate = listing.status === "pending_review" || listing.status === "submitted";
+  const canHide = listing.status !== "hidden" && listing.status !== "deleted";
+  const canDelete = listing.status !== "deleted";
+  const canManageListings = currentSession ? hasRole(currentSession, listingModeratorRoleCodes) : false;
 
   return (
     <section>
@@ -134,7 +141,7 @@ export default async function AdminListingDetailPage({
         </div>
 
         <aside className="grid content-start gap-4">
-          {canModerate ? (
+          {canManageListings && canModerate ? (
             <section className="rounded-md border border-[#dde1e7] bg-white p-4">
               <h2 className="text-base font-extrabold">Thao tác kiểm duyệt</h2>
               <form action={approveListing} className="mt-4 grid gap-2">
@@ -157,6 +164,36 @@ export default async function AdminListingDetailPage({
                   Từ chối
                 </button>
               </form>
+            </section>
+          ) : null}
+
+          {canManageListings && (canHide || canDelete) ? (
+            <section className="rounded-md border border-[#dde1e7] bg-white p-4">
+              <h2 className="text-base font-extrabold">Ẩn hoặc xóa tin</h2>
+              {canHide ? (
+                <form action={hideListingByAdmin} className="mt-4 grid gap-2">
+                  <input type="hidden" name="id" value={listing.id} />
+                  <textarea name="note" rows={2} placeholder="Lý do ẩn tin" className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm text-[#1f2430]" />
+                  <button type="submit" className="rounded-md border border-[#8a5a00] px-3 py-2 text-sm font-extrabold text-[#8a5a00]">
+                    Ẩn tin khỏi public
+                  </button>
+                </form>
+              ) : null}
+              {canDelete ? (
+                <form action={deleteListingByAdmin} className="mt-4 grid gap-2 border-t border-[#edf0f3] pt-4">
+                  <input type="hidden" name="id" value={listing.id} />
+                  <textarea name="note" rows={2} placeholder="Lý do xóa mềm" className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm text-[#1f2430]" />
+                  <button type="submit" className="rounded-md border border-[#c7352d] px-3 py-2 text-sm font-extrabold text-[#c7352d]">
+                    Xóa mềm tin đăng
+                  </button>
+                </form>
+              ) : null}
+            </section>
+          ) : null}
+
+          {!canManageListings ? (
+            <section className="rounded-md border border-[#dde1e7] bg-white p-4 text-sm font-bold text-[#6c7280]">
+              Tài khoản hiện tại chỉ có quyền xem tin trong trang quản trị.
             </section>
           ) : null}
 

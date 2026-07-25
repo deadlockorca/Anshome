@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentSession } from "@/lib/auth/session";
-import { submitListingForReview } from "@/app/tai-khoan/tin-dang/listing-actions";
+import { deleteOwnListing, submitListingForReview } from "@/app/tai-khoan/tin-dang/listing-actions";
 import { StatusBadge } from "@/components/ui/status-badge";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,12 @@ export default async function AccountListingsPage() {
   }
 
   const listings = await db.listing.findMany({
-    where: { ownerUserId: currentSession.user.id },
+    where: {
+      ownerUserId: currentSession.user.id,
+      status: {
+        not: "deleted",
+      },
+    },
     orderBy: [{ updatedAt: "desc" }],
     include: {
       category: {
@@ -102,12 +107,21 @@ export default async function AccountListingsPage() {
                 <td className="px-4 py-3"><StatusBadge value={listing.status} /></td>
                 <td className="px-4 py-3">
                   {listing.status === "draft" || listing.status === "rejected" ? (
-                    <form action={submitListingForReview}>
-                      <input type="hidden" name="id" value={listing.id} />
-                      <button type="submit" className="rounded-md border border-[#c7352d] px-3 py-1.5 text-xs font-extrabold text-[#c7352d]">
-                        Gửi duyệt
-                      </button>
-                    </form>
+                    <div className="grid w-[120px] gap-2">
+                      <form action={submitListingForReview}>
+                        <input type="hidden" name="id" value={listing.id} />
+                        <button type="submit" className="w-full rounded-md border border-[#c7352d] px-3 py-1.5 text-xs font-extrabold text-[#c7352d]">
+                          Gửi duyệt
+                        </button>
+                      </form>
+                      <form action={deleteOwnListing}>
+                        <input type="hidden" name="id" value={listing.id} />
+                        <input type="hidden" name="note" value="Chủ tin xóa mềm từ danh sách quản lý." />
+                        <button type="submit" className="w-full rounded-md border border-[#d5dae2] px-3 py-1.5 text-xs font-extrabold text-[#5f6675] hover:border-[#c7352d] hover:text-[#c7352d]">
+                          Xóa tin
+                        </button>
+                      </form>
+                    </div>
                   ) : (
                     <span className="text-xs font-bold text-[#6c7280]">Không có thao tác</span>
                   )}

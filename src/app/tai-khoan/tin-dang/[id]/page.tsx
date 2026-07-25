@@ -5,7 +5,7 @@ import { getCurrentSession, hasRole } from "@/lib/auth/session";
 import { listingPosterRoleCodes } from "@/lib/auth/roles";
 import { ListingForm } from "@/components/listings/listing-form";
 import { ListingMediaSection } from "@/components/listings/listing-media-section";
-import { submitListingForReview, updateDraftListing } from "@/app/tai-khoan/tin-dang/listing-actions";
+import { deleteOwnListing, submitListingForReview, updateDraftListing } from "@/app/tai-khoan/tin-dang/listing-actions";
 import { StatusBadge } from "@/components/ui/status-badge";
 
 export const dynamic = "force-dynamic";
@@ -120,6 +120,16 @@ export default async function EditListingPage({
             </label>
             <button type="submit" className="mt-3 rounded-md bg-[#1f2430] px-4 py-2 text-sm font-extrabold text-white">
               Gửi sang kiểm duyệt
+            </button>
+          </form>
+          <form action={deleteOwnListing} className="rounded-md border border-[#f1b8b4] bg-white p-4">
+            <input type="hidden" name="id" value={listing.id} />
+            <label className="grid gap-1 text-xs font-bold uppercase text-[#6c7280]">
+              Ghi chú xóa tin
+              <textarea name="note" rows={2} className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm leading-6 normal-case text-[#1f2430]" />
+            </label>
+            <button type="submit" className="mt-3 rounded-md border border-[#c7352d] px-4 py-2 text-sm font-extrabold text-[#c7352d]">
+              Xóa tin nháp
             </button>
           </form>
         </div>

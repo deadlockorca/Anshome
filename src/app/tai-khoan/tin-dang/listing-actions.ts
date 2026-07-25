@@ -14,6 +14,7 @@ import type { LocationType, MediaStatus, MediaType, TransactionType } from "@/ge
 const transactionTypes = new Set<TransactionType>(["sale", "rent"]);
 const editableStatuses = new Set(["draft", "rejected"]);
 const reviewableStatuses = new Set(["pending_review", "submitted"]);
+const ownerDeletableStatuses = new Set(["draft", "rejected"]);
 const mediaTypes = new Set<MediaType>(["image", "video", "floor_plan", "document"]);
 
 function required(value: string | null, field: string): string {
@@ -347,6 +348,54 @@ export async function submitListingForReview(formData: FormData) {
   redirect("/tai-khoan/tin-dang");
 }
 
+export async function deleteOwnListing(formData: FormData) {
+  const currentSession = await requireRole(listingPosterRoleCodes);
+  const id = required(formString(formData, "id"), "mã tin đăng");
+  const before = await db.listing.findFirstOrThrow({
+    where: { id, ownerUserId: currentSession.user.id },
+  });
+
+  if (!ownerDeletableStatuses.has(before.status)) {
+    throw new Error("Chỉ tin nháp hoặc tin bị từ chối mới được xóa bởi chủ tin.");
+  }
+
+  const after = await db.listing.update({
+    where: { id },
+    data: {
+      status: "deleted",
+      moderationStatus: "none",
+      publishedAt: null,
+      expiredAt: null,
+    },
+  });
+
+  await db.listingModerationEvent.create({
+    data: {
+      listingId: after.id,
+      actorUserId: currentSession.user.id,
+      action: "delete",
+      beforeStatus: before.status,
+      afterStatus: after.status,
+      note: formString(formData, "note"),
+    },
+  });
+
+  await writeAuditLog({
+    actorUserId: currentSession.user.id,
+    entityType: "listing",
+    entityId: after.id,
+    action: "listing.owner_delete",
+    before,
+    after,
+  });
+
+  revalidatePath("/tai-khoan/tin-dang");
+  revalidatePath(`/tai-khoan/tin-dang/${after.id}`);
+  revalidatePath("/tin-dang");
+  revalidatePath(`/tin-dang/${after.publicId}`);
+  redirect("/tai-khoan/tin-dang");
+}
+
 export async function addListingMedia(formData: FormData) {
   const currentSession = await requireRole(listingPosterRoleCodes);
   const listingId = required(formString(formData, "listingId"), "mã tin đăng");
@@ -561,6 +610,102 @@ export async function approveListing(formData: FormData) {
   });
 
   revalidatePath("/admin/listings");
+  revalidatePath("/tai-khoan/tin-dang");
+  revalidatePath("/tin-dang");
+  revalidatePath(`/tin-dang/${after.publicId}`);
+  redirect("/admin/listings");
+}
+
+export async function hideListingByAdmin(formData: FormData) {
+  const currentSession = await requireRole(listingModeratorRoleCodes);
+  const id = required(formString(formData, "id"), "mã tin đăng");
+  const before = await db.listing.findUniqueOrThrow({ where: { id } });
+
+  if (before.status === "hidden") {
+    throw new Error("Tin đăng đã được ẩn.");
+  }
+
+  if (before.status === "deleted") {
+    throw new Error("Tin đăng đã xóa không thể ẩn thêm.");
+  }
+
+  const after = await db.listing.update({
+    where: { id },
+    data: {
+      status: "hidden",
+      moderationStatus: "flagged",
+    },
+  });
+
+  await db.listingModerationEvent.create({
+    data: {
+      listingId: after.id,
+      actorUserId: currentSession.user.id,
+      action: "hide",
+      beforeStatus: before.status,
+      afterStatus: after.status,
+      note: formString(formData, "note"),
+    },
+  });
+
+  await writeAuditLog({
+    actorUserId: currentSession.user.id,
+    entityType: "listing",
+    entityId: after.id,
+    action: "listing.admin_hide",
+    before,
+    after,
+  });
+
+  revalidatePath("/admin/listings");
+  revalidatePath(`/admin/listings/${after.id}`);
+  revalidatePath("/tai-khoan/tin-dang");
+  revalidatePath("/tin-dang");
+  revalidatePath(`/tin-dang/${after.publicId}`);
+  redirect("/admin/listings");
+}
+
+export async function deleteListingByAdmin(formData: FormData) {
+  const currentSession = await requireRole(listingModeratorRoleCodes);
+  const id = required(formString(formData, "id"), "mã tin đăng");
+  const before = await db.listing.findUniqueOrThrow({ where: { id } });
+
+  if (before.status === "deleted") {
+    throw new Error("Tin đăng đã xóa.");
+  }
+
+  const after = await db.listing.update({
+    where: { id },
+    data: {
+      status: "deleted",
+      moderationStatus: "flagged",
+      publishedAt: null,
+      expiredAt: null,
+    },
+  });
+
+  await db.listingModerationEvent.create({
+    data: {
+      listingId: after.id,
+      actorUserId: currentSession.user.id,
+      action: "delete",
+      beforeStatus: before.status,
+      afterStatus: after.status,
+      note: formString(formData, "note"),
+    },
+  });
+
+  await writeAuditLog({
+    actorUserId: currentSession.user.id,
+    entityType: "listing",
+    entityId: after.id,
+    action: "listing.admin_delete",
+    before,
+    after,
+  });
+
+  revalidatePath("/admin/listings");
+  revalidatePath(`/admin/listings/${after.id}`);
   revalidatePath("/tai-khoan/tin-dang");
   revalidatePath("/tin-dang");
   revalidatePath(`/tin-dang/${after.publicId}`);

@@ -75,22 +75,31 @@ const articleCategories = [
   { name: "Goc nhin chuyen gia", slug: "goc-nhin-chuyen-gia", description: "Expert views." },
 ];
 
-const locations: Array<{ type: LocationType; name: string; slug: string; fullName: string; code?: string; parentSlug?: string }> = [
-  { type: "country", name: "Viet Nam", slug: "viet-nam", fullName: "Viet Nam", code: "VN" },
-  { type: "province", name: "Ha Noi", slug: "ha-noi", fullName: "Thanh pho Ha Noi", parentSlug: "viet-nam" },
-  { type: "province", name: "TP. Ho Chi Minh", slug: "tp-ho-chi-minh", fullName: "Thanh pho Ho Chi Minh", parentSlug: "viet-nam" },
-  { type: "province", name: "Da Nang", slug: "da-nang", fullName: "Thanh pho Da Nang", parentSlug: "viet-nam" },
-  { type: "province", name: "Binh Duong", slug: "binh-duong", fullName: "Binh Duong", parentSlug: "viet-nam" },
-  { type: "province", name: "Dong Nai", slug: "dong-nai", fullName: "Dong Nai", parentSlug: "viet-nam" },
-  { type: "province", name: "Long An", slug: "long-an", fullName: "Long An", parentSlug: "viet-nam" },
-  { type: "province", name: "Phu Yen", slug: "phu-yen", fullName: "Phu Yen", parentSlug: "viet-nam" },
-  { type: "district", name: "Cau Giay", slug: "cau-giay", fullName: "Quan Cau Giay, Ha Noi", parentSlug: "ha-noi" },
-  { type: "district", name: "Quan 1", slug: "quan-1", fullName: "Quan 1, TP. Ho Chi Minh", parentSlug: "tp-ho-chi-minh" },
-  { type: "district", name: "Quan 7", slug: "quan-7", fullName: "Quan 7, TP. Ho Chi Minh", parentSlug: "tp-ho-chi-minh" },
-  { type: "district", name: "Thu Duc", slug: "thu-duc", fullName: "Thu Duc, TP. Ho Chi Minh", parentSlug: "tp-ho-chi-minh" },
-  { type: "district", name: "Can Giuoc", slug: "can-giuoc", fullName: "Can Giuoc, Long An", parentSlug: "long-an" },
-  { type: "district", name: "Tuy Hoa", slug: "tuy-hoa", fullName: "Tuy Hoa, Phu Yen", parentSlug: "phu-yen" },
-  { type: "district", name: "Ngu Hanh Son", slug: "ngu-hanh-son", fullName: "Quan Ngu Hanh Son, Da Nang", parentSlug: "da-nang" },
+const locations: Array<{
+  type: LocationType;
+  name: string;
+  slug: string;
+  fullName: string;
+  code?: string;
+  parentSlug?: string;
+  latitude?: string;
+  longitude?: string;
+}> = [
+  { type: "country", name: "Viet Nam", slug: "viet-nam", fullName: "Viet Nam", code: "VN", latitude: "14.0583240", longitude: "108.2771990" },
+  { type: "province", name: "Ha Noi", slug: "ha-noi", fullName: "Thanh pho Ha Noi", parentSlug: "viet-nam", latitude: "21.0277644", longitude: "105.8341598" },
+  { type: "province", name: "TP. Ho Chi Minh", slug: "tp-ho-chi-minh", fullName: "Thanh pho Ho Chi Minh", parentSlug: "viet-nam", latitude: "10.8230990", longitude: "106.6296640" },
+  { type: "province", name: "Da Nang", slug: "da-nang", fullName: "Thanh pho Da Nang", parentSlug: "viet-nam", latitude: "16.0544068", longitude: "108.2021667" },
+  { type: "province", name: "Binh Duong", slug: "binh-duong", fullName: "Binh Duong", parentSlug: "viet-nam", latitude: "11.3254024", longitude: "106.4770170" },
+  { type: "province", name: "Dong Nai", slug: "dong-nai", fullName: "Dong Nai", parentSlug: "viet-nam", latitude: "11.0686305", longitude: "107.1675976" },
+  { type: "province", name: "Long An", slug: "long-an", fullName: "Long An", parentSlug: "viet-nam", latitude: "10.6955720", longitude: "106.2431205" },
+  { type: "province", name: "Phu Yen", slug: "phu-yen", fullName: "Phu Yen", parentSlug: "viet-nam", latitude: "13.0881861", longitude: "109.0928764" },
+  { type: "district", name: "Cau Giay", slug: "cau-giay", fullName: "Quan Cau Giay, Ha Noi", parentSlug: "ha-noi", latitude: "21.0362368", longitude: "105.7905825" },
+  { type: "district", name: "Quan 1", slug: "quan-1", fullName: "Quan 1, TP. Ho Chi Minh", parentSlug: "tp-ho-chi-minh", latitude: "10.7756587", longitude: "106.7004238" },
+  { type: "district", name: "Quan 7", slug: "quan-7", fullName: "Quan 7, TP. Ho Chi Minh", parentSlug: "tp-ho-chi-minh", latitude: "10.7340344", longitude: "106.7215787" },
+  { type: "district", name: "Thu Duc", slug: "thu-duc", fullName: "Thu Duc, TP. Ho Chi Minh", parentSlug: "tp-ho-chi-minh", latitude: "10.8494094", longitude: "106.7537055" },
+  { type: "district", name: "Can Giuoc", slug: "can-giuoc", fullName: "Can Giuoc, Long An", parentSlug: "long-an", latitude: "10.6081300", longitude: "106.6712500" },
+  { type: "district", name: "Tuy Hoa", slug: "tuy-hoa", fullName: "Tuy Hoa, Phu Yen", parentSlug: "phu-yen", latitude: "13.0954636", longitude: "109.3209404" },
+  { type: "district", name: "Ngu Hanh Son", slug: "ngu-hanh-son", fullName: "Quan Ngu Hanh Son, Da Nang", parentSlug: "da-nang", latitude: "16.0038536", longitude: "108.2646719" },
 ];
 
 const featuredProjects: Array<{
@@ -182,6 +191,8 @@ const projectListings: Array<{
   legalStatus: string;
   interiorStatus: string;
   imageUrl: string;
+  latitude: string;
+  longitude: string;
 }> = [
   {
     publicId: "ANROYAL001",
@@ -200,6 +211,8 @@ const projectListings: Array<{
     legalStatus: "Sổ hồng lâu dài",
     interiorStatus: "Bàn giao thô",
     imageUrl: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=82",
+    latitude: "10.6081300",
+    longitude: "106.6712500",
   },
   {
     publicId: "ANROYAL002",
@@ -218,6 +231,8 @@ const projectListings: Array<{
     legalStatus: "Hợp đồng mua bán",
     interiorStatus: "Bàn giao thô",
     imageUrl: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=1200&q=82",
+    latitude: "10.6088200",
+    longitude: "106.6720400",
   },
   {
     publicId: "ANROYAL003",
@@ -236,6 +251,8 @@ const projectListings: Array<{
     legalStatus: "Hợp đồng mua bán",
     interiorStatus: "Đất nền",
     imageUrl: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=82",
+    latitude: "10.6075100",
+    longitude: "106.6706200",
   },
   {
     publicId: "ANROYAL004",
@@ -254,7 +271,71 @@ const projectListings: Array<{
     legalStatus: "Sổ hồng lâu dài",
     interiorStatus: "Hoàn thiện cơ bản",
     imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=82",
+    latitude: "10.6093400",
+    longitude: "106.6719200",
   },
+];
+
+const listingMarketInsights: Array<{
+  code: string;
+  transactionType: "sale" | "rent";
+  categoryCode: string;
+  provinceSlug: string;
+  districtSlug: string;
+  title: string;
+  summary: string;
+  changePercent: string;
+  periodLabel: string;
+  currentPricePerSqm: string;
+  lowPricePerSqm: string;
+  highPricePerSqm: string;
+  ctaLabel: string;
+  ctaHref: string;
+}> = [
+  {
+    code: "sale-villa-can-giuoc-price-2026",
+    transactionType: "sale",
+    categoryCode: "sale_villa",
+    provinceSlug: "long-an",
+    districtSlug: "can-giuoc",
+    title: "Giá bán khu vực Cần Giuộc",
+    summary: "Giá tại khu vực này đã tăng trong vòng 1 năm qua",
+    changePercent: "12.00",
+    periodLabel: "1 năm",
+    currentPricePerSqm: "76111111",
+    lowPricePerSqm: "70000000",
+    highPricePerSqm: "83500000",
+    ctaLabel: "Xem lịch sử giá",
+    ctaHref: "#gia",
+  },
+];
+
+const listingDetailLinks: Array<{
+  code: string;
+  group: "area_market" | "popular_property" | "utility";
+  label: string;
+  href: string;
+  count?: number;
+  categoryCode?: string;
+  locationSlug?: string;
+  sortOrder: number;
+}> = [
+  { code: "area-can-giuoc", group: "area_market", label: "Can Giuoc, Long An", href: "/tin-dang?district=can-giuoc", count: 80, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 10 },
+  { code: "area-can-giuoc-phuong-1", group: "area_market", label: "Phường 1", href: "/tin-dang?district=can-giuoc&ward=phuong-1", count: 75, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 20 },
+  { code: "area-can-giuoc-phuong-7", group: "area_market", label: "Phường 7", href: "/tin-dang?district=can-giuoc&ward=phuong-7", count: 71, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 30 },
+  { code: "area-can-giuoc-phuong-4", group: "area_market", label: "Phường 4", href: "/tin-dang?district=can-giuoc&ward=phuong-4", count: 61, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 40 },
+  { code: "area-can-giuoc-phuong-3", group: "area_market", label: "Phường 3", href: "/tin-dang?district=can-giuoc&ward=phuong-3", count: 59, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 50 },
+  { code: "popular-saigon-intela", group: "popular_property", label: "Căn hộ Sài Gòn Intela", href: "/du-an/saigon-intela", sortOrder: 10 },
+  { code: "popular-new-city-thu-thiem", group: "popular_property", label: "Căn hộ New City Thủ Thiêm", href: "/du-an/new-city-thu-thiem", sortOrder: 20 },
+  { code: "popular-green-river", group: "popular_property", label: "Căn hộ Green River", href: "/du-an/green-river", sortOrder: 30 },
+  { code: "popular-kingdom-101", group: "popular_property", label: "Căn hộ Kingdom 101", href: "/du-an/kingdom-101", sortOrder: 40 },
+  { code: "popular-midtown-phu-my-hung", group: "popular_property", label: "Căn hộ Midtown Phú Mỹ Hưng", href: "/du-an/midtown-phu-my-hung", sortOrder: 50 },
+  { code: "popular-sunshine-avenue", group: "popular_property", label: "Căn hộ Sunshine Avenue", href: "/du-an/sunshine-avenue", sortOrder: 60 },
+  { code: "utility-feng-shui", group: "utility", label: "Tư vấn phong thủy", href: "/wiki/phong-thuy", sortOrder: 10 },
+  { code: "utility-build-cost", group: "utility", label: "Dự tính chi phí làm nhà", href: "/wiki/du-tinh-chi-phi-lam-nha", sortOrder: 20 },
+  { code: "utility-interest", group: "utility", label: "Tính lãi suất", href: "/wiki/tai-chinh-bat-dong-san", sortOrder: 30 },
+  { code: "utility-building-process", group: "utility", label: "Quy trình xây nhà", href: "/wiki/quy-trinh-xay-nha", sortOrder: 40 },
+  { code: "utility-age-check", group: "utility", label: "Xem tuổi làm nhà", href: "/wiki/xem-tuoi-lam-nha", sortOrder: 50 },
 ];
 
 const newsArticles: Array<{
@@ -322,16 +403,96 @@ async function main() {
         fullName: location.fullName,
         code: location.code,
         parentId,
+        latitude: location.latitude,
+        longitude: location.longitude,
       },
       update: {
         name: location.name,
         fullName: location.fullName,
         code: location.code,
         parentId,
+        latitude: location.latitude,
+        longitude: location.longitude,
         isActive: true,
       },
     });
     locationIds.set(location.slug, record.id);
+  }
+
+  for (const insight of listingMarketInsights) {
+    const category = await prisma.category.findUniqueOrThrow({
+      where: { code: insight.categoryCode },
+      select: { id: true },
+    });
+    const provinceId = locationIds.get(insight.provinceSlug);
+    const districtId = locationIds.get(insight.districtSlug);
+
+    await prisma.listingMarketInsight.upsert({
+      where: { code: insight.code },
+      create: {
+        code: insight.code,
+        transactionType: insight.transactionType,
+        categoryId: category.id,
+        provinceId,
+        districtId,
+        title: insight.title,
+        summary: insight.summary,
+        changePercent: insight.changePercent,
+        periodLabel: insight.periodLabel,
+        currentPricePerSqm: insight.currentPricePerSqm,
+        lowPricePerSqm: insight.lowPricePerSqm,
+        highPricePerSqm: insight.highPricePerSqm,
+        ctaLabel: insight.ctaLabel,
+        ctaHref: insight.ctaHref,
+      },
+      update: {
+        transactionType: insight.transactionType,
+        categoryId: category.id,
+        provinceId,
+        districtId,
+        title: insight.title,
+        summary: insight.summary,
+        changePercent: insight.changePercent,
+        periodLabel: insight.periodLabel,
+        currentPricePerSqm: insight.currentPricePerSqm,
+        lowPricePerSqm: insight.lowPricePerSqm,
+        highPricePerSqm: insight.highPricePerSqm,
+        ctaLabel: insight.ctaLabel,
+        ctaHref: insight.ctaHref,
+        isActive: true,
+      },
+    });
+  }
+
+  for (const detailLink of listingDetailLinks) {
+    const categoryId = detailLink.categoryCode
+      ? (await prisma.category.findUniqueOrThrow({ where: { code: detailLink.categoryCode }, select: { id: true } })).id
+      : undefined;
+    const locationId = detailLink.locationSlug ? locationIds.get(detailLink.locationSlug) : undefined;
+
+    await prisma.listingDetailLink.upsert({
+      where: { code: detailLink.code },
+      create: {
+        code: detailLink.code,
+        group: detailLink.group,
+        label: detailLink.label,
+        href: detailLink.href,
+        count: detailLink.count,
+        categoryId,
+        locationId,
+        sortOrder: detailLink.sortOrder,
+      },
+      update: {
+        group: detailLink.group,
+        label: detailLink.label,
+        href: detailLink.href,
+        count: detailLink.count,
+        categoryId,
+        locationId,
+        sortOrder: detailLink.sortOrder,
+        isActive: true,
+      },
+    });
   }
 
   for (const category of articleCategories) {
@@ -590,8 +751,11 @@ async function main() {
         provinceId,
         districtId,
         addressText: "The Royal Five Star Eco City, Can Giuoc, Long An",
+        latitude: listing.latitude,
+        longitude: listing.longitude,
         contactName: "Anshome Project Agent",
         contactPhone: "0909000000",
+        contactZalo: "0909000000",
         isVerified: true,
         isFeatured: index < 2,
         publishedAt,
@@ -613,8 +777,11 @@ async function main() {
         provinceId,
         districtId,
         addressText: "The Royal Five Star Eco City, Can Giuoc, Long An",
+        latitude: listing.latitude,
+        longitude: listing.longitude,
         contactName: "Anshome Project Agent",
         contactPhone: "0909000000",
+        contactZalo: "0909000000",
         isVerified: true,
         isFeatured: index < 2,
         publishedAt,
@@ -687,6 +854,32 @@ async function main() {
         caption: listing.title,
         moderationStatus: "approved",
       },
+    });
+  }
+
+  await prisma.listingView.deleteMany({
+    where: {
+      source: "seed:detail-page",
+    },
+  });
+
+  const viewedSeedListings = await prisma.listing.findMany({
+    where: {
+      publicId: {
+        in: projectListings.filter((listing) => listing.publicId !== "ANROYAL001").map((listing) => listing.publicId),
+      },
+    },
+    select: { id: true },
+  });
+
+  if (viewedSeedListings.length > 0) {
+    await prisma.listingView.createMany({
+      data: viewedSeedListings.map((listing, index) => ({
+        listingId: listing.id,
+        sessionId: "seed-session",
+        source: "seed:detail-page",
+        viewedAt: new Date(Date.now() - (index + 1) * 24 * 60 * 60 * 1000),
+      })),
     });
   }
 
