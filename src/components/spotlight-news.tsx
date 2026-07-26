@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { useMemo, useState } from "react";
 
 export type SpotlightArticle = {
   title: string;
@@ -36,15 +33,7 @@ function ClockIcon() {
 }
 
 export default function SpotlightNews({ sections }: SpotlightNewsProps) {
-  const [activeTab, setActiveTab] = useState(0);
-
-  const activeSection = useMemo(() => {
-    if (sections.length === 0) {
-      return null;
-    }
-
-    return sections[activeTab] ?? sections[0];
-  }, [sections, activeTab]);
+  const activeSection = sections[0];
 
   if (!activeSection) {
     return null;
@@ -54,34 +43,19 @@ export default function SpotlightNews({ sections }: SpotlightNewsProps) {
     <section className="spotlight-zone" aria-labelledby="spotlight-title">
       <div className="stage-shell spotlight-shell">
         <div className="spotlight-head">
-          <div className="spotlight-tabs" role="tablist" aria-label="Chuyên mục tin">
-            {sections.map((section, index) => (
-              <button
-                key={section.label}
-                type="button"
-                role="tab"
-                id={`spotlight-tab-${index}`}
-                aria-selected={index === activeTab}
-                aria-controls={`spotlight-panel-${index}`}
-                className="spotlight-tab"
-                onClick={() => setActiveTab(index)}
-              >
-                {section.label}
-              </button>
-            ))}
-          </div>
+          <h2 id="spotlight-title" className="spotlight-heading">Tin tức bất động sản</h2>
           <Link href={activeSection.moreHref} className="spotlight-more">
             Xem thêm <span aria-hidden>→</span>
           </Link>
         </div>
 
-        <div id={`spotlight-panel-${activeTab}`} role="tabpanel" aria-labelledby={`spotlight-tab-${activeTab}`} className="spotlight-grid">
+        <div className="spotlight-grid">
           <article className="spotlight-featured">
             <Link href={activeSection.featured.href} className="spotlight-image-link">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={activeSection.featured.image} alt={activeSection.featured.title} className="spotlight-image" loading="lazy" />
             </Link>
-            <Link href={activeSection.featured.href} id="spotlight-title" className="spotlight-title">
+            <Link href={activeSection.featured.href} className="spotlight-title">
               {activeSection.featured.title}
             </Link>
             <p className="spotlight-meta">

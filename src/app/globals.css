@@ -47,6 +47,174 @@ a {
   padding-top: var(--header-height);
 }
 
+.listing-detail-root {
+  overflow-x: clip;
+}
+
+.listing-detail-layout {
+  align-items: start;
+  width: min(100%, 974px);
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+.listing-detail-sidebar {
+  display: none;
+}
+
+.listing-mobile-contact-bar {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .listing-detail-root {
+    padding-bottom: 92px;
+  }
+
+  .listing-mobile-contact-bar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 120;
+    display: grid;
+    grid-template-columns: 58px minmax(116px, 0.85fr) minmax(0, 1.45fr);
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid #e4e7ed;
+    background: #ffffff;
+    box-shadow: 0 -8px 24px rgba(20, 28, 45, 0.14);
+  }
+
+  .listing-mobile-avatar {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    place-items: center;
+    overflow: hidden;
+    border: 3px solid #d8d9dd;
+    border-radius: 999px;
+    background: #fde4df;
+    color: #c7352d;
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .listing-mobile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .listing-mobile-zalo,
+  .listing-mobile-phone {
+    display: flex;
+    min-width: 0;
+    min-height: 54px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .listing-mobile-zalo {
+    border: 1.5px solid #d0d4dd;
+    background: #ffffff;
+    color: #252933;
+  }
+
+  .listing-mobile-zalo-icon {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 7px;
+    background: #1688ff;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 900;
+  }
+
+  .listing-mobile-phone {
+    padding: 0 12px;
+    background: #079fa4;
+    color: #ffffff;
+  }
+
+  .listing-mobile-phone svg {
+    width: 23px;
+    height: 23px;
+    flex: 0 0 auto;
+  }
+
+  .listing-mobile-phone span,
+  .listing-mobile-zalo span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 430px) {
+  .listing-detail-root {
+    padding-bottom: 84px;
+  }
+
+  .listing-mobile-contact-bar {
+    grid-template-columns: 52px minmax(106px, 0.9fr) minmax(0, 1.45fr);
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .listing-mobile-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .listing-mobile-zalo,
+  .listing-mobile-phone {
+    min-height: 50px;
+    border-radius: 9px;
+    font-size: 14px;
+  }
+
+  .listing-mobile-zalo-icon {
+    width: 25px;
+    height: 25px;
+    font-size: 9px;
+  }
+
+  .listing-mobile-phone {
+    padding-inline: 9px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .listing-detail-layout {
+    width: min(calc(100% - 32px), 974px);
+    grid-template-columns: 650px 300px;
+    padding-inline: 0;
+  }
+
+  .listing-detail-sidebar {
+    align-self: start;
+    display: grid;
+    align-content: start;
+    gap: 16px;
+  }
+
+  .listing-contact-sticky {
+    position: sticky;
+    top: calc(var(--header-height) + 8px);
+    z-index: 3;
+  }
+}
+
 .stage-shell {
   width: min(100%, 1320px);
   margin-inline: auto;
@@ -1365,7 +1533,7 @@ a {
 
 .hero-zone {
   position: relative;
-  padding: 42px 0 190px;
+  padding: 42px 0 280px;
   display: flex;
   justify-content: center;
   background: #ededed;
@@ -1510,19 +1678,20 @@ a {
 }
 
 .search-address-row {
-  min-height: 58px;
-  padding: 0 20px;
+  min-height: 44px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
   background: #f2ebf5;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .search-toggle {
-  width: 52px;
-  height: 30px;
+  width: 40px;
+  height: 24px;
   border: 0;
   border-radius: 999px;
   background: #cfcfd2;
@@ -1533,46 +1702,50 @@ a {
 }
 
 .search-toggle span {
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
   border-radius: 999px;
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(31, 36, 48, 0.18);
 }
 
 .search-help {
-  padding: 24px 28px;
+  padding: 16px 20px;
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 14px;
   align-items: start;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.45;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .search-help-icon {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   display: inline-grid;
   place-items: center;
   background: #865aa6;
   color: #ffffff;
-  font-size: 19px;
+  font-size: 14px;
   font-weight: 900;
   font-family: Georgia, serif;
 }
 
 .search-help p {
-  margin: 0 0 12px;
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .search-help ul {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 18px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .search-btn {
@@ -2780,39 +2953,14 @@ a {
   z-index: 2;
 }
 
-.spotlight-tabs {
-  display: flex;
-  align-items: flex-end;
-  gap: 34px;
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  position: relative;
-  z-index: 3;
-}
-
-.spotlight-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.spotlight-tab {
-  border: 0;
-  background: transparent;
-  color: #959aa6;
-  padding: 0 0 16px;
+.spotlight-heading {
   margin: 0;
+  padding: 0 0 16px;
+  color: #232733;
+  box-shadow: inset 0 -3px 0 var(--brand);
   font-size: 18px;
   font-weight: 800;
   line-height: 1.15;
-  white-space: nowrap;
-  cursor: pointer;
-  pointer-events: auto;
-}
-
-.spotlight-tab[aria-selected="true"] {
-  color: #232733;
-  box-shadow: inset 0 -3px 0 var(--brand);
 }
 
 .spotlight-more {
@@ -3173,11 +3321,7 @@ a {
     gap: 28px;
   }
 
-  .spotlight-tabs {
-    gap: 22px;
-  }
-
-  .spotlight-tab {
+  .spotlight-heading {
     padding-bottom: 14px;
     font-size: 17px;
   }
@@ -3224,7 +3368,7 @@ a {
   }
 
   .hero-zone {
-    padding: 20px 0 24px;
+    padding: 20px 0 120px;
   }
 
   .hero-zone::before {
@@ -3251,33 +3395,33 @@ a {
   }
 
   .search-address-row {
-    min-height: 50px;
+    min-height: 44px;
     padding: 0 14px;
-    gap: 12px;
+    gap: 10px;
     font-size: 14px;
   }
 
   .search-toggle {
-    width: 46px;
-    height: 26px;
+    width: 40px;
+    height: 24px;
   }
 
   .search-toggle span {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
   .search-help {
-    padding: 18px 16px;
-    grid-template-columns: 32px minmax(0, 1fr);
+    padding: 16px 14px;
+    grid-template-columns: 28px minmax(0, 1fr);
     gap: 12px;
     font-size: 14px;
   }
 
   .search-help-icon {
-    width: 26px;
-    height: 26px;
-    font-size: 16px;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
   }
 
   .input-wrap {
@@ -3576,12 +3720,7 @@ a {
     gap: 0;
   }
 
-  .spotlight-tabs {
-    width: 100%;
-    gap: 16px;
-  }
-
-  .spotlight-tab {
+  .spotlight-heading {
     padding-bottom: 12px;
     font-size: 16px;
   }
@@ -3836,7 +3975,7 @@ a {
 
   .hero-zone {
     order: 1;
-    min-height: 392px;
+    min-height: 480px;
     padding: 18px 0 0;
     align-items: flex-start;
     background:

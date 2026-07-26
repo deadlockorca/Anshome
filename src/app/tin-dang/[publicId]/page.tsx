@@ -188,6 +188,16 @@ function formatDate(date: Date | null): string {
   return date ? date.toLocaleDateString("vi-VN") : "Đang cập nhật";
 }
 
+function formatMaskedPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+
+  if (digits.length >= 7) {
+    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ***`;
+  }
+
+  return phone;
+}
+
 function compactAddress(listing: ListingDetail): string {
   return [listing.street?.fullName, listing.ward?.fullName, listing.district?.fullName, listing.province?.fullName]
     .filter(Boolean)
@@ -357,12 +367,13 @@ export default async function PublicListingDetailPage({ params }: Props) {
   const popularLinks = detailLinks.filter((link) => link.group === "popular_property");
   const utilityLinks = detailLinks.filter((link) => link.group === "utility");
   const viewedListings = recentViews.map((view) => view.listing).filter((item) => item.status === "published");
+  const contactAvatarUrl = listing.owner.profile?.avatarMedia?.publicUrl ?? listing.agency?.logoMedia?.publicUrl ?? null;
 
   return (
-    <main className="stage-root overflow-x-hidden bg-white text-[#2b2c33]">
+    <main className="stage-root listing-detail-root bg-white text-[#2b2c33]">
       <SiteHeader />
 
-      <section className="mx-auto grid w-full max-w-[1000px] gap-6 px-4 py-6 lg:grid-cols-[650px_270px]">
+      <section className="listing-detail-layout grid w-full gap-6 py-6">
         <article className="min-w-0">
           <ListingGallery images={galleryImages} />
 
@@ -456,13 +467,17 @@ export default async function PublicListingDetailPage({ params }: Props) {
           ) : null}
         </article>
 
-        <aside className="hidden content-start gap-4 lg:grid">
-          <AgentCard contactName={ownerName} company={ownerCompany} phone={listing.contactPhone} zalo={listing.contactZalo} relatedCount={relatedListings.length + 1} />
+        <aside className="listing-detail-sidebar">
+          <div className="listing-contact-sticky">
+            <AgentCard contactName={ownerName} company={ownerCompany} avatarUrl={contactAvatarUrl} phone={listing.contactPhone} zalo={listing.contactZalo} relatedCount={relatedListings.length + 1} />
+          </div>
           <SidebarList title={`Mua bán nhà đất tại ${districtName}`} items={areaLinks} more />
           <SidebarList title="Bất động sản nổi bật" items={popularLinks} />
           <SidebarList title="Hỗ trợ tiện ích" items={utilityLinks} />
         </aside>
       </section>
+
+      <MobileContactBar contactName={ownerName} avatarUrl={contactAvatarUrl} phone={listing.contactPhone} zalo={listing.contactZalo} />
 
       <div className="fixed right-0 top-1/2 hidden -translate-y-1/2 rounded-l-md bg-[#f2f3f5] px-2 py-5 text-xs font-extrabold text-[#4c525f] shadow-sm lg:block [writing-mode:vertical-rl]">
         Tin Nhà đất
@@ -610,29 +625,60 @@ function RelatedCard({ listing, compact = false }: { listing: RelatedListing; co
   );
 }
 
-function AgentCard({ contactName, company, phone, zalo, relatedCount }: { contactName: string; company: string; phone: string; zalo?: string | null; relatedCount: number }) {
+function AgentCard({ contactName, company, avatarUrl, phone, zalo, relatedCount }: { contactName: string; company: string; avatarUrl: string | null; phone: string; zalo?: string | null; relatedCount: number }) {
   const zaloPhone = zalo ?? phone;
 
   return (
-    <section className="rounded-md border border-[#e6e9ef] bg-white p-4 shadow-[0_4px_18px_rgba(20,28,45,0.06)]">
-      <div className="flex items-center gap-3">
-        <div className="grid h-12 w-12 place-items-center rounded-full bg-[#fde4df] text-lg font-extrabold text-[#c7352d]">
-          {contactName.charAt(0).toUpperCase()}
+    <section className="overflow-hidden rounded-lg border border-[#e5e8ee] bg-white shadow-[0_8px_24px_rgba(20,28,45,0.07)]">
+      <div className="flex items-center gap-3 border-b border-[#eef0f3] px-4 pb-4 pt-[18px]">
+        <div className="grid h-[54px] w-[54px] shrink-0 place-items-center overflow-hidden rounded-full border-[3px] border-[#d4d4d4] bg-[#fde4df] text-[24px] font-black text-[#b72f2f]">
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+          ) : (
+            <span>{contactName.charAt(0).toUpperCase()}</span>
+          )}
         </div>
         <div className="min-w-0">
-          <p className="truncate text-base font-extrabold text-[#20242d]">{contactName}</p>
-          <p className="text-xs font-semibold text-[#66707c]">Xem thêm {relatedCount} tin khác</p>
+          <p className="truncate text-[17px] font-black leading-[1.18] text-[#232730]">{contactName}</p>
+          <span className="mt-1 block text-[13px] font-semibold leading-[1.2] text-[#30333a]">Xem thêm {relatedCount} tin khác</span>
         </div>
       </div>
-      <a href={`https://zalo.me/${zaloPhone.replace(/\D/g, "")}`} className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-md border border-[#d8dce3] bg-white text-sm font-extrabold text-[#1c5ecb]">
-        Chat qua Zalo
+      <a href={`https://zalo.me/${zaloPhone.replace(/\D/g, "")}`} className="mx-4 mt-4 flex min-h-[46px] min-w-0 items-center justify-center gap-2 rounded-[9px] border-[1.5px] border-[#cfd2d8] bg-white text-[14px] font-black leading-[1.15] text-[#252933]">
+        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-[6px] bg-[#1688ff] text-[8px] font-black text-white">Zalo</span>
+        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">Chat qua Zalo</span>
       </a>
-      <a href={`tel:${phone}`} className="mt-3 flex h-11 items-center justify-center gap-2 rounded-md bg-[#18b9bb] px-4 text-sm font-extrabold text-white">
+      <a href={`tel:${phone}`} className="mx-4 mb-4 mt-3 flex min-h-[46px] min-w-0 items-center justify-center gap-2 rounded-[9px] bg-[#079fa4] px-2.5 text-[14px] font-black leading-[1.15] text-white [&_svg]:h-5 [&_svg]:w-5 [&_svg]:shrink-0">
         <PhoneIcon />
-        {phone} · Hiện số
+        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{formatMaskedPhone(phone)} · Hiện số</span>
       </a>
       <p className="sr-only">{company}</p>
     </section>
+  );
+}
+
+function MobileContactBar({ contactName, avatarUrl, phone, zalo }: { contactName: string; avatarUrl: string | null; phone: string; zalo?: string | null }) {
+  const zaloPhone = (zalo ?? phone).replace(/\D/g, "");
+
+  return (
+    <div className="listing-mobile-contact-bar" role="region" aria-label="Liên hệ người đăng">
+      <div className="listing-mobile-avatar" aria-hidden>
+        {avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatarUrl} alt="" loading="lazy" />
+        ) : (
+          <span>{contactName.charAt(0).toUpperCase()}</span>
+        )}
+      </div>
+      <a href={`https://zalo.me/${zaloPhone}`} className="listing-mobile-zalo">
+        <span className="listing-mobile-zalo-icon">Zalo</span>
+        <span>Chat Zalo</span>
+      </a>
+      <a href={`tel:${phone}`} className="listing-mobile-phone">
+        <PhoneIcon />
+        <span>{formatMaskedPhone(phone)} · Hiện số</span>
+      </a>
+    </div>
   );
 }
 
