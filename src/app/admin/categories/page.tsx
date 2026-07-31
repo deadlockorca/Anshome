@@ -10,6 +10,41 @@ const transactionTypeLabel = {
   both: "Cả hai",
 } as const;
 
+const categoryNameLabel: Record<string, string> = {
+  sale_apartment: "Bán căn hộ chung cư",
+  sale_serviced_apartment: "Bán chung cư mini, căn hộ dịch vụ",
+  sale_house: "Bán nhà riêng",
+  sale_villa: "Bán nhà biệt thự, liền kề",
+  sale_street_house: "Bán nhà mặt phố",
+  sale_shophouse: "Bán shophouse, nhà phố thương mại",
+  sale_project_land: "Bán đất nền dự án",
+  sale_land: "Bán đất",
+  sale_farm_resort: "Bán trang trại, khu nghỉ dưỡng",
+  sale_condotel: "Bán condotel",
+  sale_warehouse: "Bán kho, nhà xưởng",
+  sale_other: "Bán loại bất động sản khác",
+  rent_apartment: "Cho thuê căn hộ chung cư",
+  rent_serviced_apartment: "Cho thuê chung cư mini, căn hộ dịch vụ",
+  rent_house: "Cho thuê nhà riêng",
+  rent_villa: "Cho thuê nhà biệt thự, liền kề",
+  rent_street_house: "Cho thuê nhà mặt phố",
+  rent_room: "Cho thuê nhà trọ, phòng trọ",
+  rent_shophouse: "Cho thuê shophouse, nhà phố thương mại",
+  rent_office: "Cho thuê văn phòng",
+  rent_shop: "Cho thuê, sang nhượng cửa hàng, ki ốt",
+  rent_warehouse_land: "Cho thuê kho, nhà xưởng, đất",
+  rent_other: "Cho thuê loại bất động sản khác",
+  project_apartment: "Dự án căn hộ chung cư",
+  project_office: "Dự án cao ốc văn phòng",
+  project_urban_area: "Dự án khu đô thị mới",
+  project_social_housing: "Dự án nhà ở xã hội",
+  project_industrial: "Dự án khu công nghiệp",
+};
+
+function displayCategoryName(category: { code: string; name: string }) {
+  return categoryNameLabel[category.code] ?? category.name;
+}
+
 export default async function AdminCategoriesPage() {
   const [categories, parentOptions] = await Promise.all([
     db.category.findMany({
@@ -17,6 +52,7 @@ export default async function AdminCategoriesPage() {
       include: {
         parent: {
           select: {
+            code: true,
             name: true,
           },
         },
@@ -32,6 +68,7 @@ export default async function AdminCategoriesPage() {
       orderBy: [{ transactionType: "asc" }, { sortOrder: "asc" }, { name: "asc" }],
       select: {
         id: true,
+        code: true,
         name: true,
         transactionType: true,
       },
@@ -79,7 +116,7 @@ export default async function AdminCategoriesPage() {
               <option value="">Không có danh mục cha</option>
               {parentOptions.map((category) => (
                 <option key={category.id} value={category.id}>
-                  {category.name} ({transactionTypeLabel[category.transactionType]})
+                  {displayCategoryName(category)} ({transactionTypeLabel[category.transactionType]})
                 </option>
               ))}
             </select>
@@ -118,7 +155,7 @@ export default async function AdminCategoriesPage() {
               <tr key={category.id} className="align-top hover:bg-[#fafbfc]">
                 <td className="px-4 py-3">
                   <details>
-                    <summary className="cursor-pointer font-bold">{category.name}</summary>
+                    <summary className="cursor-pointer font-bold">{displayCategoryName(category)}</summary>
                     <form action={updateCategory} className="mt-3 grid w-[760px] gap-3 rounded-md border border-[#dde1e7] bg-[#fafbfc] p-3 md:grid-cols-2">
                       <input type="hidden" name="id" value={category.id} />
                       <label className="grid gap-1 text-xs font-bold uppercase text-[#6c7280]">
@@ -137,14 +174,14 @@ export default async function AdminCategoriesPage() {
                             .filter((option) => option.id !== category.id)
                             .map((option) => (
                               <option key={option.id} value={option.id}>
-                                {option.name} ({transactionTypeLabel[option.transactionType]})
+                                {displayCategoryName(option)} ({transactionTypeLabel[option.transactionType]})
                               </option>
                             ))}
                         </select>
                       </label>
                       <label className="grid gap-1 text-xs font-bold uppercase text-[#6c7280]">
                         Tên
-                        <input name="name" required defaultValue={category.name} className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm normal-case text-[#1f2430]" />
+                        <input name="name" required defaultValue={displayCategoryName(category)} className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm normal-case text-[#1f2430]" />
                       </label>
                       <label className="grid gap-1 text-xs font-bold uppercase text-[#6c7280]">
                         Mã
@@ -173,7 +210,7 @@ export default async function AdminCategoriesPage() {
                 <td className="px-4 py-3">{transactionTypeLabel[category.transactionType]}</td>
                 <td className="px-4 py-3 font-mono text-xs">{category.code}</td>
                 <td className="px-4 py-3 font-mono text-xs">{category.slug}</td>
-                <td className="px-4 py-3 text-[#5f6675]">{category.parent?.name ?? "-"}</td>
+                <td className="px-4 py-3 text-[#5f6675]">{category.parent ? displayCategoryName(category.parent) : "-"}</td>
                 <td className="px-4 py-3 text-right">{category._count.listings}</td>
                 <td className="px-4 py-3 text-right">{category._count.projects}</td>
                 <td className="px-4 py-3"><StatusBadge value={category.isActive ? "active" : "inactive"} /></td>

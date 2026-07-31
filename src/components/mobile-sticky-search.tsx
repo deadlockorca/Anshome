@@ -3,14 +3,20 @@
 import { FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export function MobileStickySearch() {
+type MobileStickySearchProps = {
+  forceCompact?: boolean;
+  placeholder?: string;
+  transactionType?: "sale" | "rent";
+};
+
+export function MobileStickySearch({ forceCompact = false, placeholder = "Thuê chung cư 2 ngủ", transactionType = "rent" }: MobileStickySearchProps) {
   const router = useRouter();
 
   useEffect(() => {
     const compactClass = "mobile-header-compact";
 
     function updateCompactHeader() {
-      document.body.classList.toggle(compactClass, window.scrollY > 120);
+      document.body.classList.toggle(compactClass, forceCompact || window.scrollY > 120);
     }
 
     updateCompactHeader();
@@ -20,7 +26,7 @@ export function MobileStickySearch() {
       document.body.classList.remove(compactClass);
       window.removeEventListener("scroll", updateCompactHeader);
     };
-  }, []);
+  }, [forceCompact]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,13 +39,13 @@ export function MobileStickySearch() {
       params.set("q", keyword);
     }
 
-    params.set("transactionType", "rent");
+    params.set("transactionType", transactionType);
     router.push(`/tin-dang?${params.toString()}`);
   }
 
   return (
     <form className="mobile-sticky-search" aria-label="Tìm kiếm nhanh" onSubmit={handleSubmit}>
-      <input name="q" type="text" className="mobile-sticky-search-input" placeholder="Thuê chung cư 2 ngủ" />
+      <input name="q" type="text" className="mobile-sticky-search-input" placeholder={placeholder} />
       <button type="submit" className="mobile-sticky-search-button" aria-label="Tìm kiếm">
         <SearchIcon />
       </button>

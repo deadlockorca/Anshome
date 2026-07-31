@@ -392,6 +392,10 @@ a {
   display: none;
 }
 
+.landing-search-submit-icon {
+  display: none;
+}
+
 .app-link,
 .auth-link {
   font-size: 14px;
@@ -475,7 +479,9 @@ a {
   background: rgba(0, 0, 0, 0.58);
   padding: 0;
   cursor: pointer;
-  animation: mobile-drawer-backdrop-enter 180ms ease-out both;
+  opacity: 0;
+  animation: mobile-drawer-backdrop-enter 220ms ease-out both;
+  will-change: opacity;
 }
 
 .mobile-drawer-panel {
@@ -487,7 +493,21 @@ a {
   background: #ffffff;
   padding: 16px 18px 28px;
   box-shadow: -12px 0 32px rgba(0, 0, 0, 0.12);
-  animation: mobile-drawer-panel-enter 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform: translate3d(100%, 0, 0);
+  animation: mobile-drawer-panel-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform;
+}
+
+.mobile-drawer-layer.is-closing {
+  pointer-events: none;
+}
+
+.mobile-drawer-layer.is-closing .mobile-drawer-backdrop {
+  animation: mobile-drawer-backdrop-exit 220ms ease-in both;
+}
+
+.mobile-drawer-layer.is-closing .mobile-drawer-panel {
+  animation: mobile-drawer-panel-exit 240ms cubic-bezier(0.7, 0, 0.84, 0) both;
 }
 
 @keyframes mobile-drawer-backdrop-enter {
@@ -502,11 +522,31 @@ a {
 
 @keyframes mobile-drawer-panel-enter {
   from {
-    transform: translateX(100%);
+    transform: translate3d(100%, 0, 0);
   }
 
   to {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes mobile-drawer-backdrop-exit {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes mobile-drawer-panel-exit {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(100%, 0, 0);
   }
 }
 
@@ -601,7 +641,7 @@ a {
   height: 24px;
   justify-self: end;
   color: #2f3036;
-  transition: transform 180ms ease;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mobile-drawer-chevron.is-open {
@@ -612,7 +652,8 @@ a {
   margin: 8px 0 2px 50px;
   display: grid;
   gap: 8px;
-  animation: mobile-drawer-submenu-enter 160ms ease-out both;
+  animation: mobile-drawer-submenu-enter 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
 }
 
 .mobile-drawer-submenu-link {
@@ -3829,9 +3870,9 @@ a {
 
 @media (max-width: 820px) {
   :root {
-    --header-height: 92px;
-    --header-logo-size: 34px;
-    --header-brand-size: 22px;
+    --header-height: 74px;
+    --header-logo-size: 32px;
+    --header-brand-size: 20px;
   }
 
   .stage-root {
@@ -3850,7 +3891,7 @@ a {
   .stage-header-inner {
     position: relative;
     justify-content: center;
-    padding-inline: 18px;
+    padding-inline: 16px;
   }
 
   .header-left {
@@ -3858,7 +3899,7 @@ a {
   }
 
   .brand-wrap {
-    gap: 8px;
+    gap: 7px;
   }
 
   .brand-main {
@@ -3866,15 +3907,15 @@ a {
   }
 
   .brand-sub {
-    font-size: 11px;
+    font-size: 10px;
     line-height: 1;
   }
 
   .header-right {
     position: absolute;
-    right: 18px;
+    right: 16px;
     top: 50%;
-    gap: 18px;
+    gap: 14px;
     transform: translateY(-50%);
   }
 
@@ -3886,6 +3927,10 @@ a {
     height: 74px;
     border-bottom: 1px solid #eeeeee;
     box-shadow: 0 2px 12px rgba(20, 28, 45, 0.08);
+  }
+
+  .mobile-header-compact .stage-root {
+    padding-top: 74px;
   }
 
   .mobile-header-compact .stage-header-inner {
@@ -3952,6 +3997,19 @@ a {
     position: static;
     gap: 16px;
     transform: none;
+  }
+
+  .mobile-header-compact .brand-main {
+    font-size: 22px;
+  }
+
+  .mobile-header-compact .brand-sub {
+    font-size: 10px;
+  }
+
+  .mobile-header-compact .logo-mark {
+    width: 32px;
+    height: 32px;
   }
 
   .icon-btn,
@@ -4085,6 +4143,50 @@ a {
 
   .search-suggest-panel {
     top: calc(100% + 8px);
+  }
+
+  .landing-search-panel {
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .landing-search-panel .landing-search-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 52px;
+    gap: 8px;
+  }
+
+  .landing-search-panel .landing-search-main label {
+    min-height: 52px;
+    border-radius: 9px;
+    padding-inline: 14px;
+    font-size: 14px;
+  }
+
+  .landing-search-panel .landing-search-main input {
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .landing-search-panel .landing-search-main button[type="submit"] {
+    min-width: 0;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    padding: 0;
+  }
+
+  .landing-search-submit-label {
+    display: none;
+  }
+
+  .landing-search-submit-icon {
+    display: grid;
+    place-items: center;
   }
 
   .mobile-quick-actions {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type MobileMenuItem = {
@@ -201,7 +201,28 @@ function MobileMenuIcon({ icon }: { icon: MobileMenuItem["icon"] }) {
 
 export function MobileMenuDrawer() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
   const [expandedLabel, setExpandedLabel] = useState<string | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
+
+  const closeDrawer = useCallback(() => {
+    if (!shouldRender || isClosing) {
+      return;
+    }
+
+    setIsOpen(false);
+    setIsClosing(true);
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+    closeTimerRef.current = window.setTimeout(() => {
+      setShouldRender(false);
+      setIsClosing(false);
+      setExpandedLabel(null);
+      closeTimerRef.current = null;
+    }, 260);
+  }, [isClosing, shouldRender]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -210,7 +231,7 @@ export function MobileMenuDrawer() {
 
     function closeOnEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setIsOpen(false);
+        closeDrawer();
       }
     }
 
@@ -221,22 +242,35 @@ export function MobileMenuDrawer() {
       document.body.classList.remove("mobile-drawer-lock");
       window.removeEventListener("keydown", closeOnEscape);
     };
-  }, [isOpen]);
+  }, [closeDrawer, isOpen]);
 
-  function closeDrawer() {
-    setIsOpen(false);
-    setExpandedLabel(null);
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  function openDrawer() {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setShouldRender(true);
+    setIsClosing(false);
+    setIsOpen(true);
   }
 
   return (
     <>
-      <button type="button" className="mobile-menu-button" aria-label="Mở menu" aria-expanded={isOpen} onClick={() => setIsOpen(true)}>
+      <button type="button" className="mobile-menu-button" aria-label="Mở menu" aria-expanded={isOpen} onClick={openDrawer}>
         <HamburgerIcon />
       </button>
 
-      {isOpen
+      {shouldRender
         ? createPortal(
-            <div className="mobile-drawer-layer" role="dialog" aria-modal="true" aria-label="Menu">
+            <div className={`mobile-drawer-layer${isClosing ? " is-closing" : ""}`} role="dialog" aria-modal="true" aria-label="Menu">
               <button type="button" className="mobile-drawer-backdrop" aria-label="Đóng menu" onClick={closeDrawer} />
               <aside className="mobile-drawer-panel">
                 <div className="mobile-drawer-actions">

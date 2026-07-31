@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { HomeAuthModal } from "@/components/auth/home-auth-modal";
+import { MobileMenuDrawer } from "@/components/mobile-menu-drawer";
 
 type HeaderSubmenuItem = {
   label: string;
@@ -270,6 +271,7 @@ export async function SiteHeader() {
           <Link href="/sellernet/trang-dang-nhap?redirect=true&returnurl=%2Ftai-khoan%2Ftin-dang%2Ftao-moi" className="post-btn">
             Đăng tin
           </Link>
+          <MobileMenuDrawer />
         </div>
       </div>
     </header>
