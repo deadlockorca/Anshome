@@ -1,5 +1,6 @@
 import { addListingMedia, removeListingMedia, updateListingMedia } from "@/app/tai-khoan/tin-dang/listing-actions";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { MediaUploadInput } from "@/components/listings/media-upload-input";
 import type { ListingMedia, Media } from "@/generated/prisma/client";
 
 export type ListingMediaWithMedia = ListingMedia & {
@@ -35,10 +36,10 @@ export function ListingMediaSection({ listingId, canEdit, media }: ListingMediaS
       {canEdit ? (
         <form action={addListingMedia} className="mt-4 grid gap-3 rounded-md border border-[#edf0f3] bg-[#fafbfc] p-3 md:grid-cols-4">
           <input type="hidden" name="listingId" value={listingId} />
-          <label className="grid gap-1 text-xs font-bold uppercase text-[#6c7280] md:col-span-2">
-            URL tệp
-            <input name="publicUrl" required placeholder="https://..." className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm normal-case text-[#1f2430]" />
-          </label>
+          <input id="listing-media-public-url" type="hidden" name="publicUrl" />
+          <div className="md:col-span-2">
+            <MediaUploadInput />
+          </div>
           <MediaTypeSelect />
           <label className="grid gap-1 text-xs font-bold uppercase text-[#6c7280]">
             Thứ tự
@@ -50,7 +51,7 @@ export function ListingMediaSection({ listingId, canEdit, media }: ListingMediaS
           </label>
           <label className="grid gap-1 text-xs font-bold uppercase text-[#6c7280]">
             Loại MIME
-            <input name="mimeType" placeholder="image/jpeg" className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm normal-case text-[#1f2430]" />
+            <input id="mimeType" name="mimeType" placeholder="image/jpeg" className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm normal-case text-[#1f2430]" />
           </label>
           <div className="flex items-end">
             <button type="submit" className="rounded-md bg-[#c7352d] px-4 py-2 text-sm font-extrabold text-white">

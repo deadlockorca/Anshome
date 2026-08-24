@@ -5,9 +5,25 @@ import { notFound } from "next/navigation";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { LocationMap } from "@/components/ui/location-map";
 import { ListingGallery } from "./listing-gallery";
+import { buildListingDetailPath, parseListingSlugId } from "@/lib/listing-url";
+import { getCategoryDisplayLabel, getSiteUrl } from "@/lib/seo/landing";
+import { ListingViewTracker, PhoneRevealButton } from "@/components/public-listings/listing-tracker";
+import { FavoriteButton } from "@/components/public-listings/favorite-button";
+import { getCurrentSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
+
+function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
 
 const listingDetailInclude = {
   attributes: true,
@@ -118,7 +134,7 @@ type DetailLinkView = {
 };
 
 type Props = {
-  params: Promise<{ publicId: string }>;
+  params: Promise<{ slugId: string }>;
   searchParams: Promise<{ lead?: string }>;
 };
 
@@ -188,16 +204,6 @@ function formatDate(date: Date | null): string {
   return date ? date.toLocaleDateString("vi-VN") : "Đang cập nhật";
 }
 
-function formatMaskedPhone(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-
-  if (digits.length >= 7) {
-    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ***`;
-  }
-
-  return phone;
-}
-
 function compactAddress(listing: ListingDetail): string {
   return [listing.street?.fullName, listing.ward?.fullName, listing.district?.fullName, listing.province?.fullName]
     .filter(Boolean)
@@ -232,9 +238,17 @@ function getGalleryImages(listing: ListingDetail) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { publicId } = await params;
+  const { slugId } = await params;
+  const parsed = parseListingSlugId(slugId);
+
+  if (!parsed) {
+    return {
+      title: "Tin đăng không tồn tại | Anshome",
+    };
+  }
+
   const listing = await db.listing.findFirst({
-    where: { publicId, status: "published" },
+    where: { publicId: parsed.publicId, status: "published" },
     include: {
       province: { select: { fullName: true } },
       district: { select: { fullName: true } },
@@ -263,7 +277,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const location = [listing.district?.fullName, listing.province?.fullName].filter(Boolean).join(", ");
+  const location = listing.district?.fullName ?? listing.province?.fullName ?? "";
   const description = `${listing.category.name}${location ? ` tại ${location}` : ""}. Giá ${formatPrice(listing.price, listing.priceUnit)}, diện tích ${formatArea(listing.area)}.`;
 
   return {
@@ -279,10 +293,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function PublicListingDetailPage({ params }: Props) {
-  const { publicId } = await params;
+  const { slugId } = await params;
+  const parsed = parseListingSlugId(slugId);
+
+  if (!parsed) {
+    notFound();
+  }
+
   const listing = await db.listing.findFirst({
     where: {
-      publicId,
+      publicId: parsed.publicId,
       status: "published",
     },
     include: listingDetailInclude,
@@ -299,7 +319,8 @@ export default async function PublicListingDetailPage({ params }: Props) {
   ].filter((item): item is { categoryId: string } | { projectId: string } | { provinceId: string } => Boolean(item));
 
   const linkLocationIds = [listing.wardId, listing.districtId, listing.provinceId].filter((id): id is string => Boolean(id));
-  const [relatedListings, marketInsight, detailLinks, recentViews] = await Promise.all([
+  const currentSession = await getCurrentSession();
+  const [relatedListings, marketInsight, detailLinks, recentViewGroups, existingFavorite] = await Promise.all([
     db.listing.findMany({
       where: {
         id: { not: listing.id },
@@ -333,20 +354,34 @@ export default async function PublicListingDetailPage({ params }: Props) {
       },
       orderBy: [{ group: "asc" }, { sortOrder: "asc" }],
     }),
-    db.listingView.findMany({
+    db.listingView.groupBy({
+      by: ["listingId"],
       where: {
         listingId: { not: listing.id },
       },
-      orderBy: [{ viewedAt: "desc" }],
-      distinct: ["listingId"],
+      _max: { viewedAt: true },
+      orderBy: { _max: { viewedAt: "desc" } },
       take: 6,
-      include: {
-        listing: {
-          include: relatedListingInclude,
-        },
-      },
     }),
+    currentSession
+      ? db.favorite.findUnique({
+          where: {
+            userId_listingId: {
+              userId: currentSession.user.id,
+              listingId: listing.id,
+            },
+          },
+        })
+      : Promise.resolve(null),
   ]);
+
+  const recentListingIds = recentViewGroups.map((group) => group.listingId);
+  const recentViewedListings = recentListingIds.length
+    ? await db.listing.findMany({
+        where: { id: { in: recentListingIds }, status: "published" },
+        include: relatedListingInclude,
+      })
+    : [];
 
   const ownerName = listing.owner.profile?.displayName ?? listing.owner.email ?? listing.owner.phone ?? "Người đăng tin";
   const ownerCompany = listing.agency?.name ?? listing.owner.profile?.companyName ?? "Môi giới chuyên nghiệp";
@@ -366,23 +401,34 @@ export default async function PublicListingDetailPage({ params }: Props) {
   const areaLinks = detailLinks.filter((link) => link.group === "area_market");
   const popularLinks = detailLinks.filter((link) => link.group === "popular_property");
   const utilityLinks = detailLinks.filter((link) => link.group === "utility");
-  const viewedListings = recentViews.map((view) => view.listing).filter((item) => item.status === "published");
+  const viewedListings = recentViewedListings.filter((item) => item.status === "published");
   const contactAvatarUrl = listing.owner.profile?.avatarMedia?.publicUrl ?? listing.agency?.logoMedia?.publicUrl ?? null;
 
   return (
     <main className="stage-root listing-detail-root bg-white text-[#2b2c33]">
       <SiteHeader />
+      <ListingViewTracker listingId={listing.id} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildListingJsonLd(listing, address, priceLabel, areaLabel, galleryImages, ownerName)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildBreadcrumbJsonLd(listing)) }} />
 
       <section className="listing-detail-layout grid w-full gap-6 py-6">
         <article className="min-w-0">
           <ListingGallery images={galleryImages} />
 
           <div className="mt-5 text-[13px] font-semibold text-[#7b808a]">
-            <Link href="/" className="hover:text-[#c7352d]">Bán</Link>
+            <Link href="/" className="hover:text-[#c7352d]">Anshome</Link>
             <span className="mx-2">/</span>
-            <Link href="/tin-dang" className="hover:text-[#c7352d]">{listing.province?.fullName ?? "Nhà đất"}</Link>
+            <Link href={listing.transactionType === "sale" ? "/nha-dat-ban" : "/nha-dat-cho-thue"} className="hover:text-[#c7352d]">
+              {listing.transactionType === "sale" ? "Nhà đất bán" : "Nhà đất cho thuê"}
+            </Link>
             <span className="mx-2">/</span>
-            <span className="text-[#2f3340]">{listing.category.name}</span>
+            <Link href={`/${listing.category.slug}`} className="hover:text-[#c7352d]">{getCategoryDisplayLabel(listing.category)}</Link>
+            {listing.province ? (
+              <>
+                <span className="mx-2">/</span>
+                <span className="text-[#2f3340]">{listing.province.fullName}</span>
+              </>
+            ) : null}
           </div>
 
           <section className="mt-3">
@@ -401,7 +447,13 @@ export default async function PublicListingDetailPage({ params }: Props) {
               <div className="flex items-center gap-2 pb-1">
                 <IconButton label="Chia sẻ"><ShareIcon /></IconButton>
                 <IconButton label="Báo lỗi"><WarningIcon /></IconButton>
-                <IconButton label="Lưu tin"><HeartIcon /></IconButton>
+                <FavoriteButton
+                  listingId={listing.id}
+                  initialActive={Boolean(existingFavorite)}
+                  className={`grid h-10 w-10 place-items-center rounded-full border bg-white ${
+                    existingFavorite ? "border-[#c7352d] text-[#c7352d]" : "border-[#e0e3e9] text-[#414653]"
+                  } hover:border-[#c7352d] hover:text-[#c7352d]`}
+                />
               </div>
             </div>
 
@@ -449,7 +501,7 @@ export default async function PublicListingDetailPage({ params }: Props) {
                 ))}
               </div>
               <div className="mt-6 flex justify-center">
-                <Link href="/tin-dang" className="rounded-md border border-[#d8dce3] px-5 py-2 text-sm font-extrabold text-[#30343d] hover:border-[#c7352d] hover:text-[#c7352d]">
+                <Link href="/nha-dat-ban" className="rounded-md border border-[#d8dce3] px-5 py-2 text-sm font-extrabold text-[#30343d] hover:border-[#c7352d] hover:text-[#c7352d]">
                   Xem thêm
                 </Link>
               </div>
@@ -469,7 +521,15 @@ export default async function PublicListingDetailPage({ params }: Props) {
 
         <aside className="listing-detail-sidebar">
           <div className="listing-contact-sticky">
-            <AgentCard contactName={ownerName} company={ownerCompany} avatarUrl={contactAvatarUrl} phone={listing.contactPhone} zalo={listing.contactZalo} relatedCount={relatedListings.length + 1} />
+            <AgentCard
+              listingId={listing.id}
+              contactName={ownerName}
+              company={ownerCompany}
+              avatarUrl={contactAvatarUrl}
+              phone={listing.contactPhone}
+              zalo={listing.contactZalo}
+              relatedCount={relatedListings.length + 1}
+            />
           </div>
           <SidebarList title={`Mua bán nhà đất tại ${districtName}`} items={areaLinks} more />
           <SidebarList title="Bất động sản nổi bật" items={popularLinks} />
@@ -477,13 +537,92 @@ export default async function PublicListingDetailPage({ params }: Props) {
         </aside>
       </section>
 
-      <MobileContactBar contactName={ownerName} avatarUrl={contactAvatarUrl} phone={listing.contactPhone} zalo={listing.contactZalo} />
+      <MobileContactBar listingId={listing.id} contactName={ownerName} avatarUrl={contactAvatarUrl} phone={listing.contactPhone} zalo={listing.contactZalo} />
 
       <div className="fixed right-0 top-1/2 hidden -translate-y-1/2 rounded-l-md bg-[#f2f3f5] px-2 py-5 text-xs font-extrabold text-[#4c525f] shadow-sm lg:block [writing-mode:vertical-rl]">
         Tin Nhà đất
       </div>
+      <SiteFooter />
     </main>
   );
+}
+
+function buildListingJsonLd(
+  listing: ListingDetail,
+  address: string,
+  priceLabel: string,
+  areaLabel: string,
+  galleryImages: Array<{ url: string }>,
+  ownerName: string,
+) {
+  const imageUrls = galleryImages.slice(0, 10).map((image) => image.url);
+  const offerPrice = toNumber(listing.price);
+  const priceUnit = listing.priceUnit ?? "VND";
+  const priceString = offerPrice && priceUnit === "VND" ? offerPrice.toString() : priceLabel;
+  const priceCurrency = priceUnit === "VND" ? "VND" : undefined;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    name: listing.title,
+    description: listing.description,
+    image: imageUrls,
+    url: `${getSiteUrl()}${buildListingDetailPath(listing)}`,
+    datePosted: listing.publishedAt?.toISOString(),
+    datePublished: listing.publishedAt?.toISOString(),
+    offers: {
+      "@type": "Offer",
+      price: priceString,
+      ...(priceCurrency ? { priceCurrency } : {}),
+      ...(listing.area ? { areaServed: { "@type": "Place", name: areaLabel } } : {}),
+    },
+    address: {
+      "@type": "PostalAddress",
+      ...(listing.street?.fullName ? { streetAddress: listing.street.fullName } : {}),
+      ...(listing.ward?.fullName ? { addressLocality: listing.ward.fullName } : {}),
+      ...(listing.district?.fullName ? { addressRegion: listing.district.fullName } : {}),
+      ...(listing.province?.fullName ? { addressCountry: "VN", addressRegion: listing.province.fullName } : {}),
+    },
+    ...(listing.latitude && listing.longitude
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: listing.latitude.toString(),
+            longitude: listing.longitude.toString(),
+          },
+        }
+      : {}),
+    ...(listing.attributes?.bedrooms ? { numberOfRooms: listing.attributes.bedrooms } : {}),
+    ...(listing.attributes?.bathrooms ? { numberOfBathroomsTotal: listing.attributes.bathrooms } : {}),
+    ...(listing.area ? { floorSize: { "@type": "QuantitativeValue", value: listing.area.toString(), unitCode: "MTK" } } : {}),
+    ...(listing.attributes?.legalStatus ? { legalStatus: listing.attributes.legalStatus } : {}),
+    agent: {
+      "@type": "RealEstateAgent",
+      name: ownerName,
+      telephone: listing.contactPhone,
+    },
+  };
+}
+
+function buildBreadcrumbJsonLd(listing: ListingDetail) {
+  const items = [
+    { name: "Anshome", path: "/" },
+    { name: listing.transactionType === "sale" ? "Nhà đất bán" : "Nhà đất cho thuê", path: listing.transactionType === "sale" ? "/nha-dat-ban" : "/nha-dat-cho-thue" },
+    { name: listing.category.name, path: `/${listing.category.slug}` },
+    ...(listing.province ? [{ name: listing.province.fullName, path: `/${listing.category.slug}-${listing.province.slug}` }] : []),
+    { name: listing.title, path: buildListingDetailPath(listing) },
+  ];
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: `${getSiteUrl()}${item.path}`,
+    })),
+  };
 }
 
 function TopMetric({ label, value, helper }: { label: string; value: string; helper: string }) {
@@ -558,15 +697,7 @@ function ValuationBanner({ insight, categoryName }: { insight: MarketInsightView
 }
 
 function MiniMap({ address, latitude, longitude }: { address: string; latitude?: string; longitude?: string }) {
-  return (
-    <div className="relative h-[210px] overflow-hidden rounded-sm border border-[#d8dce3] bg-[#f2efe7]">
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(90,130,170,.16)_1px,transparent_1px),linear-gradient(rgba(90,130,170,.16)_1px,transparent_1px)] bg-[length:42px_42px]" />
-      <div className="absolute left-[58%] top-[36%] grid h-8 w-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[#e84b3c] text-white shadow-md"><LocationIcon /></div>
-      <p className="absolute left-4 right-4 bottom-4 rounded bg-white/90 px-3 py-2 text-xs font-bold text-[#414852]">
-        {address}{latitude && longitude ? ` · ${latitude}, ${longitude}` : ""}
-      </p>
-    </div>
-  );
+  return <LocationMap address={address} latitude={latitude} longitude={longitude} heightClass="h-[210px]" />;
 }
 
 function ListingMetaBar({
@@ -603,7 +734,7 @@ function RelatedCard({ listing, compact = false }: { listing: RelatedListing; co
   const image = listing.media[0]?.media.publicUrl;
 
   return (
-    <Link href={`/tin-dang/${listing.publicId}`} className="block overflow-hidden rounded-md border border-[#e0e4ea] bg-white shadow-[0_2px_8px_rgba(20,28,45,0.05)]">
+    <Link href={buildListingDetailPath(listing)} className="block overflow-hidden rounded-md border border-[#e0e4ea] bg-white shadow-[0_2px_8px_rgba(20,28,45,0.05)]">
       {image ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={image} alt={listing.title} className="h-[122px] w-full object-cover" />
@@ -625,7 +756,7 @@ function RelatedCard({ listing, compact = false }: { listing: RelatedListing; co
   );
 }
 
-function AgentCard({ contactName, company, avatarUrl, phone, zalo, relatedCount }: { contactName: string; company: string; avatarUrl: string | null; phone: string; zalo?: string | null; relatedCount: number }) {
+function AgentCard({ listingId, contactName, company, avatarUrl, phone, zalo, relatedCount }: { listingId: string; contactName: string; company: string; avatarUrl: string | null; phone: string; zalo?: string | null; relatedCount: number }) {
   const zaloPhone = zalo ?? phone;
 
   return (
@@ -648,16 +779,18 @@ function AgentCard({ contactName, company, avatarUrl, phone, zalo, relatedCount 
         <span className="grid h-6 w-6 shrink-0 place-items-center rounded-[6px] bg-[#1688ff] text-[8px] font-black text-white">Zalo</span>
         <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">Chat qua Zalo</span>
       </a>
-      <a href={`tel:${phone}`} className="mx-4 mb-4 mt-3 flex min-h-[46px] min-w-0 items-center justify-center gap-2 rounded-[9px] bg-[#079fa4] px-2.5 text-[14px] font-black leading-[1.15] text-white [&_svg]:h-5 [&_svg]:w-5 [&_svg]:shrink-0">
-        <PhoneIcon />
-        <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">{formatMaskedPhone(phone)} · Hiện số</span>
-      </a>
+      <PhoneRevealButton
+        listingId={listingId}
+        phone={phone}
+        icon={<PhoneIcon />}
+        className="mx-4 mb-4 mt-3 flex min-h-[46px] min-w-0 items-center justify-center gap-2 rounded-[9px] bg-[#079fa4] px-2.5 text-[14px] font-black leading-[1.15] text-white [&_svg]:h-5 [&_svg]:w-5 [&_svg]:shrink-0"
+      />
       <p className="sr-only">{company}</p>
     </section>
   );
 }
 
-function MobileContactBar({ contactName, avatarUrl, phone, zalo }: { contactName: string; avatarUrl: string | null; phone: string; zalo?: string | null }) {
+function MobileContactBar({ listingId, contactName, avatarUrl, phone, zalo }: { listingId: string; contactName: string; avatarUrl: string | null; phone: string; zalo?: string | null }) {
   const zaloPhone = (zalo ?? phone).replace(/\D/g, "");
 
   return (
@@ -674,10 +807,7 @@ function MobileContactBar({ contactName, avatarUrl, phone, zalo }: { contactName
         <span className="listing-mobile-zalo-icon">Zalo</span>
         <span>Chat Zalo</span>
       </a>
-      <a href={`tel:${phone}`} className="listing-mobile-phone">
-        <PhoneIcon />
-        <span>{formatMaskedPhone(phone)} · Hiện số</span>
-      </a>
+      <PhoneRevealButton listingId={listingId} phone={phone} icon={<PhoneIcon />} className="listing-mobile-phone" />
     </div>
   );
 }
@@ -720,14 +850,6 @@ function ShareIcon() {
     <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none">
       <path d="M8.6 13.5 15.5 17M15.4 7 8.6 10.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       <path d="M18 8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM6 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM18 20.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" stroke="currentColor" strokeWidth="1.8" />
-    </svg>
-  );
-}
-
-function HeartIcon() {
-  return (
-    <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M20.2 4.9C18.2 2.9 15 2.9 13 4.9L12 5.9L11 4.9C9 2.9 5.8 2.9 3.8 4.9C1.7 6.9 1.7 10.2 3.8 12.2L12 20.4L20.2 12.2C22.3 10.2 22.3 6.9 20.2 4.9Z" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
 }

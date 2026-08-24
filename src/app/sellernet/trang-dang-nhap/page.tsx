@@ -74,7 +74,7 @@ export default async function SellerLoginPage({
           <p className="seller-register-note">
             Chưa có tài khoản? <Link href="/dang-nhap?mode=register&next=/tai-khoan/tin-dang/tao-moi">Đăng ký tại đây</Link>
           </p>
-          <Link href="/tin-dang" className="seller-browse-link">Xem tin đăng đang hiển thị</Link>
+          <Link href="/nha-dat-ban" className="seller-browse-link">Xem tin đăng đang hiển thị</Link>
         </aside>
       </section>
     </main>

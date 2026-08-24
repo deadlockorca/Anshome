@@ -14,15 +14,15 @@ const prisma = new PrismaClient({
 });
 
 const roles: Array<{ code: RoleCode; name: string; description: string }> = [
-  { code: "seeker", name: "Seeker", description: "Browse, save listings, and submit leads." },
-  { code: "owner", name: "Owner", description: "Post and manage own property listings." },
-  { code: "agent", name: "Agent", description: "Manage professional listing inventory and leads." },
-  { code: "agency_admin", name: "Agency Admin", description: "Manage agency members, listings, and package usage." },
-  { code: "developer", name: "Developer", description: "Manage project and developer profile data." },
-  { code: "moderator", name: "Moderator", description: "Review, approve, reject, hide, and flag listings." },
-  { code: "editor", name: "Editor", description: "Manage CMS articles, categories, and SEO metadata." },
-  { code: "ops", name: "Operations", description: "Manage packages, orders, support, and operational reports." },
-  { code: "super_admin", name: "Super Admin", description: "Full system access and role management." },
+  { code: "seeker", name: "Người tìm kiếm", description: "Browse, save listings, and submit leads." },
+  { code: "owner", name: "Chủ tài sản", description: "Post and manage own property listings." },
+  { code: "agent", name: "Môi giới", description: "Manage professional listing inventory and leads." },
+  { code: "agency_admin", name: "Quản trị viên công ty", description: "Manage agency members, listings, and package usage." },
+  { code: "developer", name: "Chủ đầu tư", description: "Manage project and developer profile data." },
+  { code: "moderator", name: "Kiểm duyệt viên", description: "Review, approve, reject, hide, and flag listings." },
+  { code: "editor", name: "Biên tập viên", description: "Manage CMS articles, categories, and SEO metadata." },
+  { code: "ops", name: "Vận hành", description: "Manage packages, orders, support, and operational reports." },
+  { code: "super_admin", name: "Quản trị viên cấp cao", description: "Full system access and role management." },
 ];
 
 const categories: Array<{
@@ -32,47 +32,47 @@ const categories: Array<{
   slug: string;
   sortOrder: number;
 }> = [
-  { transactionType: "sale", code: "sale_apartment", name: "Ban can ho chung cu", slug: "ban-can-ho-chung-cu", sortOrder: 10 },
-  { transactionType: "sale", code: "sale_serviced_apartment", name: "Ban chung cu mini, can ho dich vu", slug: "ban-chung-cu-mini-can-ho-dich-vu", sortOrder: 20 },
-  { transactionType: "sale", code: "sale_house", name: "Ban nha rieng", slug: "ban-nha-rieng", sortOrder: 30 },
-  { transactionType: "sale", code: "sale_villa", name: "Ban nha biet thu, lien ke", slug: "ban-nha-biet-thu-lien-ke", sortOrder: 40 },
-  { transactionType: "sale", code: "sale_street_house", name: "Ban nha mat pho", slug: "ban-nha-mat-pho", sortOrder: 50 },
-  { transactionType: "sale", code: "sale_shophouse", name: "Ban shophouse, nha pho thuong mai", slug: "ban-shophouse-nha-pho-thuong-mai", sortOrder: 60 },
-  { transactionType: "sale", code: "sale_project_land", name: "Ban dat nen du an", slug: "ban-dat-nen-du-an", sortOrder: 70 },
-  { transactionType: "sale", code: "sale_land", name: "Ban dat", slug: "ban-dat", sortOrder: 80 },
-  { transactionType: "sale", code: "sale_farm_resort", name: "Ban trang trai, khu nghi duong", slug: "ban-trang-trai-khu-nghi-duong", sortOrder: 90 },
-  { transactionType: "sale", code: "sale_condotel", name: "Ban condotel", slug: "ban-condotel", sortOrder: 100 },
-  { transactionType: "sale", code: "sale_warehouse", name: "Ban kho, nha xuong", slug: "ban-kho-nha-xuong", sortOrder: 110 },
-  { transactionType: "sale", code: "sale_other", name: "Ban loai bat dong san khac", slug: "ban-bat-dong-san-khac", sortOrder: 120 },
-  { transactionType: "rent", code: "rent_apartment", name: "Cho thue can ho chung cu", slug: "cho-thue-can-ho-chung-cu", sortOrder: 10 },
-  { transactionType: "rent", code: "rent_serviced_apartment", name: "Cho thue chung cu mini, can ho dich vu", slug: "cho-thue-chung-cu-mini-can-ho-dich-vu", sortOrder: 20 },
-  { transactionType: "rent", code: "rent_house", name: "Cho thue nha rieng", slug: "cho-thue-nha-rieng", sortOrder: 30 },
-  { transactionType: "rent", code: "rent_villa", name: "Cho thue nha biet thu, lien ke", slug: "cho-thue-nha-biet-thu-lien-ke", sortOrder: 40 },
-  { transactionType: "rent", code: "rent_street_house", name: "Cho thue nha mat pho", slug: "cho-thue-nha-mat-pho", sortOrder: 50 },
-  { transactionType: "rent", code: "rent_room", name: "Cho thue nha tro, phong tro", slug: "cho-thue-nha-tro-phong-tro", sortOrder: 60 },
-  { transactionType: "rent", code: "rent_shophouse", name: "Cho thue shophouse, nha pho thuong mai", slug: "cho-thue-shophouse-nha-pho-thuong-mai", sortOrder: 70 },
-  { transactionType: "rent", code: "rent_office", name: "Cho thue van phong", slug: "cho-thue-van-phong", sortOrder: 80 },
-  { transactionType: "rent", code: "rent_shop", name: "Cho thue, sang nhuong cua hang, ki ot", slug: "cho-thue-cua-hang-ki-ot", sortOrder: 90 },
-  { transactionType: "rent", code: "rent_warehouse_land", name: "Cho thue kho, nha xuong, dat", slug: "cho-thue-kho-nha-xuong-dat", sortOrder: 100 },
-  { transactionType: "rent", code: "rent_other", name: "Cho thue loai bat dong san khac", slug: "cho-thue-bat-dong-san-khac", sortOrder: 110 },
-  { transactionType: "both", code: "project_apartment", name: "Du an can ho chung cu", slug: "du-an-can-ho-chung-cu", sortOrder: 210 },
-  { transactionType: "both", code: "project_office", name: "Du an cao oc van phong", slug: "du-an-cao-oc-van-phong", sortOrder: 220 },
-  { transactionType: "both", code: "project_urban_area", name: "Du an khu do thi moi", slug: "du-an-khu-do-thi-moi", sortOrder: 230 },
-  { transactionType: "both", code: "project_social_housing", name: "Du an nha o xa hoi", slug: "du-an-nha-o-xa-hoi", sortOrder: 240 },
-  { transactionType: "both", code: "project_industrial", name: "Du an khu cong nghiep", slug: "du-an-khu-cong-nghiep", sortOrder: 250 },
+  { transactionType: "sale", code: "sale_apartment", name: "Bán căn hộ chung cư", slug: "ban-can-ho-chung-cu", sortOrder: 10 },
+  { transactionType: "sale", code: "sale_serviced_apartment", name: "Bán chung cư mini, căn hộ dịch vụ", slug: "ban-chung-cu-mini-can-ho-dich-vu", sortOrder: 20 },
+  { transactionType: "sale", code: "sale_house", name: "Bán nhà riêng", slug: "ban-nha-rieng", sortOrder: 30 },
+  { transactionType: "sale", code: "sale_villa", name: "Bán nhà biệt thự, liền kề", slug: "ban-nha-biet-thu-lien-ke", sortOrder: 40 },
+  { transactionType: "sale", code: "sale_street_house", name: "Bán nhà mặt phố", slug: "ban-nha-mat-pho", sortOrder: 50 },
+  { transactionType: "sale", code: "sale_shophouse", name: "Bán shophouse, nhà phố thương mại", slug: "ban-shophouse-nha-pho-thuong-mai", sortOrder: 60 },
+  { transactionType: "sale", code: "sale_project_land", name: "Bán đất nền dự án", slug: "ban-dat-nen-du-an", sortOrder: 70 },
+  { transactionType: "sale", code: "sale_land", name: "Bán đất", slug: "ban-dat", sortOrder: 80 },
+  { transactionType: "sale", code: "sale_farm_resort", name: "Bán trang trại, khu nghỉ dưỡng", slug: "ban-trang-trai-khu-nghi-duong", sortOrder: 90 },
+  { transactionType: "sale", code: "sale_condotel", name: "Bán condotel", slug: "ban-condotel", sortOrder: 100 },
+  { transactionType: "sale", code: "sale_warehouse", name: "Bán kho, nhà xưởng", slug: "ban-kho-nha-xuong", sortOrder: 110 },
+  { transactionType: "sale", code: "sale_other", name: "Bán loại bất động sản khác", slug: "ban-bat-dong-san-khac", sortOrder: 120 },
+  { transactionType: "rent", code: "rent_apartment", name: "Cho thuê căn hộ chung cư", slug: "cho-thue-can-ho-chung-cu", sortOrder: 10 },
+  { transactionType: "rent", code: "rent_serviced_apartment", name: "Cho thuê chung cư mini, căn hộ dịch vụ", slug: "cho-thue-chung-cu-mini-can-ho-dich-vu", sortOrder: 20 },
+  { transactionType: "rent", code: "rent_house", name: "Cho thuê nhà riêng", slug: "cho-thue-nha-rieng", sortOrder: 30 },
+  { transactionType: "rent", code: "rent_villa", name: "Cho thuê nhà biệt thự, liền kề", slug: "cho-thue-nha-biet-thu-lien-ke", sortOrder: 40 },
+  { transactionType: "rent", code: "rent_street_house", name: "Cho thuê nhà mặt phố", slug: "cho-thue-nha-mat-pho", sortOrder: 50 },
+  { transactionType: "rent", code: "rent_room", name: "Cho thuê nhà trọ, phòng trọ", slug: "cho-thue-nha-tro-phong-tro", sortOrder: 60 },
+  { transactionType: "rent", code: "rent_shophouse", name: "Cho thuê shophouse, nhà phố thương mại", slug: "cho-thue-shophouse-nha-pho-thuong-mai", sortOrder: 70 },
+  { transactionType: "rent", code: "rent_office", name: "Cho thuê văn phòng", slug: "cho-thue-van-phong", sortOrder: 80 },
+  { transactionType: "rent", code: "rent_shop", name: "Cho thuê, sang nhượng cửa hàng, ki ốt", slug: "cho-thue-cua-hang-ki-ot", sortOrder: 90 },
+  { transactionType: "rent", code: "rent_warehouse_land", name: "Cho thuê kho, nhà xưởng, đất", slug: "cho-thue-kho-nha-xuong-dat", sortOrder: 100 },
+  { transactionType: "rent", code: "rent_other", name: "Cho thuê loại bất động sản khác", slug: "cho-thue-bat-dong-san-khac", sortOrder: 110 },
+  { transactionType: "both", code: "project_apartment", name: "Dự án căn hộ chung cư", slug: "du-an-can-ho-chung-cu", sortOrder: 210 },
+  { transactionType: "both", code: "project_office", name: "Dự án cao ốc văn phòng", slug: "du-an-cao-oc-van-phong", sortOrder: 220 },
+  { transactionType: "both", code: "project_urban_area", name: "Dự án khu đô thị mới", slug: "du-an-khu-do-thi-moi", sortOrder: 230 },
+  { transactionType: "both", code: "project_social_housing", name: "Dự án nhà ở xã hội", slug: "du-an-nha-o-xa-hoi", sortOrder: 240 },
+  { transactionType: "both", code: "project_industrial", name: "Dự án khu công nghiệp", slug: "du-an-khu-cong-nghiep", sortOrder: 250 },
 ];
 
 const articleCategories = [
-  { name: "Tin tuc", slug: "tin-tuc", description: "Market news and real-estate updates." },
-  { name: "Wiki BDS", slug: "wiki", description: "Evergreen real-estate guides." },
-  { name: "Mua BDS", slug: "mua-bat-dong-san", description: "Buying guides." },
-  { name: "Ban BDS", slug: "ban-bat-dong-san", description: "Selling guides." },
-  { name: "Thue BDS", slug: "thue-bat-dong-san", description: "Renting guides." },
-  { name: "Tai chinh BDS", slug: "tai-chinh-bat-dong-san", description: "Finance and mortgage topics." },
-  { name: "Quy hoach - Phap ly", slug: "quy-hoach-phap-ly", description: "Planning and legal topics." },
-  { name: "Noi - Ngoai that", slug: "noi-ngoai-that", description: "Interior and exterior topics." },
-  { name: "Bao cao thi truong", slug: "bao-cao-thi-truong", description: "Market reports." },
-  { name: "Goc nhin chuyen gia", slug: "goc-nhin-chuyen-gia", description: "Expert views." },
+  { name: "Tin tức", slug: "tin-tuc", description: "Market news and real-estate updates." },
+  { name: "Wiki BĐS", slug: "wiki", description: "Evergreen real-estate guides." },
+  { name: "Mua BĐS", slug: "mua-bat-dong-san", description: "Buying guides." },
+  { name: "Bán BĐS", slug: "ban-bat-dong-san", description: "Selling guides." },
+  { name: "Thuê BĐS", slug: "thue-bat-dong-san", description: "Renting guides." },
+  { name: "Tài chính BĐS", slug: "tai-chinh-bat-dong-san", description: "Finance and mortgage topics." },
+  { name: "Quy hoạch - Pháp lý", slug: "quy-hoach-phap-ly", description: "Planning and legal topics." },
+  { name: "Nội - Ngoại thất", slug: "noi-ngoai-that", description: "Interior and exterior topics." },
+  { name: "Báo cáo thị trường", slug: "bao-cao-thi-truong", description: "Market reports." },
+  { name: "Góc nhìn chuyên gia", slug: "goc-nhin-chuyen-gia", description: "Expert views." },
 ];
 
 const locations: Array<{
@@ -85,21 +85,21 @@ const locations: Array<{
   latitude?: string;
   longitude?: string;
 }> = [
-  { type: "country", name: "Viet Nam", slug: "viet-nam", fullName: "Viet Nam", code: "VN", latitude: "14.0583240", longitude: "108.2771990" },
-  { type: "province", name: "Ha Noi", slug: "ha-noi", fullName: "Thanh pho Ha Noi", parentSlug: "viet-nam", latitude: "21.0277644", longitude: "105.8341598" },
-  { type: "province", name: "TP. Ho Chi Minh", slug: "tp-ho-chi-minh", fullName: "Thanh pho Ho Chi Minh", parentSlug: "viet-nam", latitude: "10.8230990", longitude: "106.6296640" },
-  { type: "province", name: "Da Nang", slug: "da-nang", fullName: "Thanh pho Da Nang", parentSlug: "viet-nam", latitude: "16.0544068", longitude: "108.2021667" },
-  { type: "province", name: "Binh Duong", slug: "binh-duong", fullName: "Binh Duong", parentSlug: "viet-nam", latitude: "11.3254024", longitude: "106.4770170" },
-  { type: "province", name: "Dong Nai", slug: "dong-nai", fullName: "Dong Nai", parentSlug: "viet-nam", latitude: "11.0686305", longitude: "107.1675976" },
+  { type: "country", name: "Việt Nam", slug: "viet-nam", fullName: "Việt Nam", code: "VN", latitude: "14.0583240", longitude: "108.2771990" },
+  { type: "province", name: "Hà Nội", slug: "ha-noi", fullName: "Thành phố Hà Nội", parentSlug: "viet-nam", latitude: "21.0277644", longitude: "105.8341598" },
+  { type: "province", name: "TP. Hồ Chí Minh", slug: "tp-ho-chi-minh", fullName: "Thành phố Hồ Chí Minh", parentSlug: "viet-nam", latitude: "10.8230990", longitude: "106.6296640" },
+  { type: "province", name: "Đà Nẵng", slug: "da-nang", fullName: "Thành phố Đà Nẵng", parentSlug: "viet-nam", latitude: "16.0544068", longitude: "108.2021667" },
+  { type: "province", name: "Bình Dương", slug: "binh-duong", fullName: "Bình Dương", parentSlug: "viet-nam", latitude: "11.3254024", longitude: "106.4770170" },
+  { type: "province", name: "Đồng Nai", slug: "dong-nai", fullName: "Đồng Nai", parentSlug: "viet-nam", latitude: "11.0686305", longitude: "107.1675976" },
   { type: "province", name: "Long An", slug: "long-an", fullName: "Long An", parentSlug: "viet-nam", latitude: "10.6955720", longitude: "106.2431205" },
-  { type: "province", name: "Phu Yen", slug: "phu-yen", fullName: "Phu Yen", parentSlug: "viet-nam", latitude: "13.0881861", longitude: "109.0928764" },
-  { type: "district", name: "Cau Giay", slug: "cau-giay", fullName: "Quan Cau Giay, Ha Noi", parentSlug: "ha-noi", latitude: "21.0362368", longitude: "105.7905825" },
-  { type: "district", name: "Quan 1", slug: "quan-1", fullName: "Quan 1, TP. Ho Chi Minh", parentSlug: "tp-ho-chi-minh", latitude: "10.7756587", longitude: "106.7004238" },
-  { type: "district", name: "Quan 7", slug: "quan-7", fullName: "Quan 7, TP. Ho Chi Minh", parentSlug: "tp-ho-chi-minh", latitude: "10.7340344", longitude: "106.7215787" },
-  { type: "district", name: "Thu Duc", slug: "thu-duc", fullName: "Thu Duc, TP. Ho Chi Minh", parentSlug: "tp-ho-chi-minh", latitude: "10.8494094", longitude: "106.7537055" },
-  { type: "district", name: "Can Giuoc", slug: "can-giuoc", fullName: "Can Giuoc, Long An", parentSlug: "long-an", latitude: "10.6081300", longitude: "106.6712500" },
-  { type: "district", name: "Tuy Hoa", slug: "tuy-hoa", fullName: "Tuy Hoa, Phu Yen", parentSlug: "phu-yen", latitude: "13.0954636", longitude: "109.3209404" },
-  { type: "district", name: "Ngu Hanh Son", slug: "ngu-hanh-son", fullName: "Quan Ngu Hanh Son, Da Nang", parentSlug: "da-nang", latitude: "16.0038536", longitude: "108.2646719" },
+  { type: "province", name: "Phú Yên", slug: "phu-yen", fullName: "Phú Yên", parentSlug: "viet-nam", latitude: "13.0881861", longitude: "109.0928764" },
+  { type: "district", name: "Cầu Giấy", slug: "cau-giay", fullName: "Quận Cầu Giấy, Hà Nội", parentSlug: "ha-noi", latitude: "21.0362368", longitude: "105.7905825" },
+  { type: "district", name: "Quận 1", slug: "quan-1", fullName: "Quận 1, TP. Hồ Chí Minh", parentSlug: "tp-ho-chi-minh", latitude: "10.7756587", longitude: "106.7004238" },
+  { type: "district", name: "Quận 7", slug: "quan-7", fullName: "Quận 7, TP. Hồ Chí Minh", parentSlug: "tp-ho-chi-minh", latitude: "10.7340344", longitude: "106.7215787" },
+  { type: "district", name: "Thủ Đức", slug: "thu-duc", fullName: "Thủ Đức, TP. Hồ Chí Minh", parentSlug: "tp-ho-chi-minh", latitude: "10.8494094", longitude: "106.7537055" },
+  { type: "district", name: "Cần Giuộc", slug: "can-giuoc", fullName: "Cần Giuộc, Long An", parentSlug: "long-an", latitude: "10.6081300", longitude: "106.6712500" },
+  { type: "district", name: "Tuy Hòa", slug: "tuy-hoa", fullName: "Tuy Hòa, Phú Yên", parentSlug: "phu-yen", latitude: "13.0954636", longitude: "109.3209404" },
+  { type: "district", name: "Ngũ Hành Sơn", slug: "ngu-hanh-son", fullName: "Quận Ngũ Hành Sơn, Đà Nẵng", parentSlug: "da-nang", latitude: "16.0038536", longitude: "108.2646719" },
 ];
 
 const featuredProjects: Array<{
@@ -126,7 +126,7 @@ const featuredProjects: Array<{
     landArea: "395000",
     priceMin: null,
     priceUnit: "VND/m2",
-    addressText: "Can Giuoc, Long An",
+    addressText: "Cần Giuộc, Long An",
     imageUrl: "https://images.unsplash.com/photo-1599619585752-c3edb42a414c?auto=format&fit=crop&w=1200&q=82",
     mediaCount: 17,
   },
@@ -159,7 +159,7 @@ const featuredProjects: Array<{
     mediaCount: 5,
   },
   {
-    name: "Prosper Pho Dong",
+    name: "Prosper Phố Đông",
     slug: "prosper-pho-dong",
     description: "Du an can ho tai khu Dong TP.HCM, phu hop nhu cau o thuc voi muc gia vua tam va tien ich noi khu day du.",
     status: "selling",
@@ -320,7 +320,7 @@ const listingDetailLinks: Array<{
   locationSlug?: string;
   sortOrder: number;
 }> = [
-  { code: "area-can-giuoc", group: "area_market", label: "Can Giuoc, Long An", href: "/tin-dang?district=can-giuoc", count: 80, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 10 },
+  { code: "area-can-giuoc", group: "area_market", label: "Cần Giuộc, Long An", href: "/tin-dang?district=can-giuoc", count: 80, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 10 },
   { code: "area-can-giuoc-phuong-1", group: "area_market", label: "Phường 1", href: "/tin-dang?district=can-giuoc&ward=phuong-1", count: 75, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 20 },
   { code: "area-can-giuoc-phuong-7", group: "area_market", label: "Phường 7", href: "/tin-dang?district=can-giuoc&ward=phuong-7", count: 71, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 30 },
   { code: "area-can-giuoc-phuong-4", group: "area_market", label: "Phường 4", href: "/tin-dang?district=can-giuoc&ward=phuong-4", count: 61, categoryCode: "sale_villa", locationSlug: "can-giuoc", sortOrder: 40 },
@@ -368,7 +368,76 @@ const newsArticles: Array<{
   },
 ];
 
+const listingPackages: Array<{
+  code: string;
+  name: string;
+  description: string;
+  price: string;
+  durationDays: number;
+  featuredQuota: number;
+  boostQuota: number;
+  refreshQuota: number;
+  maxListings: number | null;
+  sortOrder: number;
+}> = [
+  {
+    code: "free",
+    name: "Gói Miễn phí",
+    description: "Đăng tin cơ bản, không nổi bật, hiệu lực 30 ngày.",
+    price: "0",
+    durationDays: 30,
+    featuredQuota: 0,
+    boostQuota: 0,
+    refreshQuota: 1,
+    maxListings: 5,
+    sortOrder: 10,
+  },
+  {
+    code: "featured",
+    name: "Gói Tin nổi bật",
+    description: "Làm nổi bật 1 tin trong 30 ngày, hiển thị ưu tiên trong danh sách tìm kiếm.",
+    price: "150000",
+    durationDays: 30,
+    featuredQuota: 1,
+    boostQuota: 2,
+    refreshQuota: 3,
+    maxListings: null,
+    sortOrder: 20,
+  },
+  {
+    code: "boost",
+    name: "Gói Đẩy tin",
+    description: "Đẩy tin lên đầu danh sách 5 lần và làm mới vô hạn trong 30 ngày.",
+    price: "300000",
+    durationDays: 30,
+    featuredQuota: 2,
+    boostQuota: 5,
+    refreshQuota: 10,
+    maxListings: null,
+    sortOrder: 30,
+  },
+];
+
 async function main() {
+  for (const pkg of listingPackages) {
+    await prisma.listingPackage.upsert({
+      where: { code: pkg.code },
+      create: pkg,
+      update: {
+        name: pkg.name,
+        description: pkg.description,
+        price: pkg.price,
+        durationDays: pkg.durationDays,
+        featuredQuota: pkg.featuredQuota,
+        boostQuota: pkg.boostQuota,
+        refreshQuota: pkg.refreshQuota,
+        maxListings: pkg.maxListings,
+        isActive: true,
+        sortOrder: pkg.sortOrder,
+      },
+    });
+  }
+
   for (const role of roles) {
     await prisma.role.upsert({
       where: { code: role.code },
@@ -750,7 +819,7 @@ async function main() {
         pricePerSqm: listing.pricePerSqm,
         provinceId,
         districtId,
-        addressText: "The Royal Five Star Eco City, Can Giuoc, Long An",
+        addressText: "The Royal Five Star Eco City, Cần Giuộc, Long An",
         latitude: listing.latitude,
         longitude: listing.longitude,
         contactName: "Anshome Project Agent",
@@ -776,7 +845,7 @@ async function main() {
         pricePerSqm: listing.pricePerSqm,
         provinceId,
         districtId,
-        addressText: "The Royal Five Star Eco City, Can Giuoc, Long An",
+        addressText: "The Royal Five Star Eco City, Cần Giuộc, Long An",
         latitude: listing.latitude,
         longitude: listing.longitude,
         contactName: "Anshome Project Agent",

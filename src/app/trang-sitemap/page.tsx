@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { buildSeoLandingPath, getInternalSeoLinks } from "@/lib/seo/landing";
+import { buildListingDetailPath } from "@/lib/listing-url";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,7 @@ export default async function HtmlSitemapPage() {
       take: 20,
       select: {
         publicId: true,
+        slug: true,
         title: true,
       },
     }),
@@ -72,7 +74,7 @@ export default async function HtmlSitemapPage() {
           <nav className="flex items-center gap-4 text-sm font-bold text-[#384052]">
             <Link href="/nha-dat-ban">Nhà đất bán</Link>
             <Link href="/nha-dat-cho-thue">Nhà đất cho thuê</Link>
-            <Link href="/tin-dang">Tin đăng</Link>
+            <Link href="/nha-dat-ban">Tin đăng</Link>
           </nav>
         </div>
       </header>
@@ -125,7 +127,7 @@ export default async function HtmlSitemapPage() {
             title="Tin đăng mới"
             items={publishedListings.map((listing) => ({
               label: listing.title,
-              href: `/tin-dang/${listing.publicId}`,
+              href: buildListingDetailPath(listing),
             }))}
           />
 
@@ -133,12 +135,17 @@ export default async function HtmlSitemapPage() {
             { label: "Quản lý tin đăng", href: "/tai-khoan/tin-dang" },
             { label: "Tạo tin mới", href: "/tai-khoan/tin-dang/tao-moi" },
             { label: "Quản lý khách liên hệ", href: "/tai-khoan/leads" },
+            { label: "Tin đã lưu", href: "/tai-khoan/yeu-thich" },
+            { label: "Tìm kiếm đã lưu", href: "/tai-khoan/tim-kiem-da-luu" },
+            { label: "Cài đặt tài khoản", href: "/tai-khoan/cai-dat" },
           ]} />
 
           <SitemapSection title="Quản trị" items={[
             { label: "Bảng điều khiển quản trị", href: "/admin" },
             { label: "Quản lý người dùng", href: "/admin/users" },
             { label: "Quản lý tin đăng", href: "/admin/listings" },
+            { label: "Quản lý bài viết", href: "/admin/articles" },
+            { label: "Quản lý khách liên hệ", href: "/admin/leads" },
             { label: "Quản lý địa lý", href: "/admin/locations" },
             { label: "Quản lý danh mục", href: "/admin/categories" },
             { label: "Nhật ký hoạt động", href: "/admin/audit-logs" },

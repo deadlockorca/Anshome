@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { formString } from "@/lib/forms";
 import { getCurrentSession } from "@/lib/auth/session";
+import { buildListingDetailPath } from "@/lib/listing-url";
 
 function required(value: string | null, field: string): string {
   if (!value) {
@@ -42,6 +43,7 @@ export async function createListingLead(formData: FormData) {
     select: {
       id: true,
       publicId: true,
+      slug: true,
       title: true,
       ownerUserId: true,
     },
@@ -92,7 +94,8 @@ export async function createListingLead(formData: FormData) {
     return createdLead;
   });
 
-  revalidatePath(`/tin-dang/${listing.publicId}`);
+  const detailPath = buildListingDetailPath(listing);
+  revalidatePath(detailPath);
   revalidatePath("/tai-khoan/leads");
-  redirect(`/tin-dang/${listing.publicId}?lead=sent&leadId=${lead.id}`);
+  redirect(`${detailPath}?lead=sent&leadId=${lead.id}`);
 }

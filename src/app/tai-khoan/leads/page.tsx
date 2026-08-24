@@ -5,6 +5,7 @@ import { getCurrentSession, hasRole } from "@/lib/auth/session";
 import { listingPosterRoleCodes } from "@/lib/auth/roles";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { updateLeadStatus } from "@/app/tai-khoan/leads/lead-actions";
+import { buildListingDetailPath } from "@/lib/listing-url";
 import type { LeadStatus } from "@/generated/prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,7 @@ export default async function AccountLeadsPage() {
       listing: {
         select: {
           publicId: true,
+          slug: true,
           title: true,
         },
       },
@@ -108,7 +110,7 @@ export default async function AccountLeadsPage() {
                 {lead.listing ? (
                   <p className="mt-3 text-sm text-[#5f6675]">
                     Tin:{" "}
-                    <Link href={`/tin-dang/${lead.listing.publicId}`} className="font-bold text-[#c7352d]">
+                    <Link href={buildListingDetailPath(lead.listing)} className="font-bold text-[#c7352d]">
                       {lead.listing.title}
                     </Link>
                   </p>

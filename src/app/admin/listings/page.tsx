@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { approveListing, deleteListingByAdmin, hideListingByAdmin, rejectListing } from "@/app/tai-khoan/tin-dang/listing-actions";
+import {
+  approveListing,
+  deleteListingByAdmin,
+  hideListingByAdmin,
+  rejectListing,
+  requestEditListing,
+} from "@/app/tai-khoan/tin-dang/listing-actions";
+import { hideListingReasons, listingModerationReasons } from "@/lib/listings/moderation";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { listingModeratorRoleCodes } from "@/lib/auth/roles";
 import { getCurrentSession, hasRole } from "@/lib/auth/session";
@@ -114,7 +121,7 @@ export default async function AdminListingsPage() {
                   </td>
                   <td className="px-4 py-3">{ownerName}</td>
                   <td className="px-4 py-3">{listing.category.name}</td>
-                  <td className="px-4 py-3 text-[#5f6675]">{[listing.district?.fullName, listing.province?.fullName].filter(Boolean).join(", ") || "-"}</td>
+                  <td className="px-4 py-3 text-[#5f6675]">{listing.district?.fullName ?? listing.province?.fullName ?? "-"}</td>
                   <td className="px-4 py-3 text-right">{listing.price ? `${listing.price.toString()} ${listing.priceUnit ?? ""}` : "-"}</td>
                   <td className="px-4 py-3"><StatusBadge value={listing.status} /></td>
                   <td className="px-4 py-3">
@@ -129,19 +136,27 @@ export default async function AdminListingsPage() {
                                 Duyệt và đăng
                               </button>
                             </form>
-                            <form action={rejectListing} className="grid gap-2">
-                              <input type="hidden" name="id" value={listing.id} />
-                              <select name="reasonCode" defaultValue="content_quality" className="rounded-md border border-[#d5dae2] px-3 py-2 text-xs font-bold text-[#1f2430]">
-                                <option value="content_quality">Chất lượng nội dung</option>
-                                <option value="missing_information">Thiếu thông tin</option>
-                                <option value="duplicate">Trùng tin</option>
-                                <option value="policy_violation">Vi phạm chính sách</option>
-                              </select>
-                              <textarea name="note" required rows={2} placeholder="Ghi chú từ chối" className="rounded-md border border-[#d5dae2] px-3 py-2 text-xs text-[#1f2430]" />
-                              <button type="submit" className="rounded-md border border-[#c7352d] px-3 py-2 text-xs font-extrabold text-[#c7352d]">
-                                Từ chối
-                              </button>
-                            </form>
+                            <div className="grid grid-cols-2 gap-2">
+                              <form action={rejectListing} className="grid gap-2">
+                                <input type="hidden" name="id" value={listing.id} />
+                                <select name="reasonCode" defaultValue="content_quality" className="rounded-md border border-[#d5dae2] px-3 py-2 text-xs font-bold text-[#1f2430]">
+                                  {listingModerationReasons.map((reason) => (
+                                    <option key={reason.code} value={reason.code}>{reason.label}</option>
+                                  ))}
+                                </select>
+                                <textarea name="note" required rows={2} placeholder="Ghi chú từ chối" className="rounded-md border border-[#d5dae2] px-3 py-2 text-xs text-[#1f2430]" />
+                                <button type="submit" className="rounded-md border border-[#c7352d] px-3 py-2 text-xs font-extrabold text-[#c7352d]">
+                                  Từ chối
+                                </button>
+                              </form>
+                              <form action={requestEditListing} className="grid gap-2">
+                                <input type="hidden" name="id" value={listing.id} />
+                                <textarea name="note" required rows={2} placeholder="Ghi chú yêu cầu sửa" className="rounded-md border border-[#d5dae2] px-3 py-2 text-xs text-[#1f2430]" />
+                                <button type="submit" className="rounded-md border border-[#8a5a00] px-3 py-2 text-xs font-extrabold text-[#8a5a00]">
+                                  Yêu cầu chỉnh sửa
+                                </button>
+                              </form>
+                            </div>
                           </>
                         ) : (
                           <div className="text-xs leading-5 text-[#6c7280]">
@@ -152,6 +167,11 @@ export default async function AdminListingsPage() {
                         {listing.status !== "hidden" && listing.status !== "deleted" ? (
                           <form action={hideListingByAdmin} className="grid gap-2 border-t border-[#edf0f3] pt-2">
                             <input type="hidden" name="id" value={listing.id} />
+                            <select name="reasonCode" defaultValue="policy_violation" className="rounded-md border border-[#d5dae2] px-3 py-2 text-xs font-bold text-[#1f2430]">
+                              {hideListingReasons.map((reason) => (
+                                <option key={reason.code} value={reason.code}>{reason.label}</option>
+                              ))}
+                            </select>
                             <input name="note" placeholder="Lý do ẩn tin" className="rounded-md border border-[#d5dae2] px-3 py-2 text-xs text-[#1f2430]" />
                             <button type="submit" className="rounded-md border border-[#8a5a00] px-3 py-2 text-xs font-extrabold text-[#8a5a00]">
                               Ẩn tin

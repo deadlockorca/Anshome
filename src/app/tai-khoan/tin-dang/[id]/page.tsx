@@ -6,6 +6,7 @@ import { listingPosterRoleCodes } from "@/lib/auth/roles";
 import { ListingForm } from "@/components/listings/listing-form";
 import { ListingMediaSection } from "@/components/listings/listing-media-section";
 import { deleteOwnListing, submitListingForReview, updateDraftListing } from "@/app/tai-khoan/tin-dang/listing-actions";
+import { applyBenefit } from "@/app/tai-khoan/goi-dang-tin/package-actions";
 import { StatusBadge } from "@/components/ui/status-badge";
 
 export const dynamic = "force-dynamic";
@@ -90,6 +91,38 @@ export default async function EditListingPage({
   }
 
   const canEdit = listing.status === "draft" || listing.status === "rejected";
+  const isPublished = listing.status === "published";
+
+  const paidOrders = isPublished
+    ? await db.order.findMany({
+        where: {
+          userId: currentSession.user.id,
+          status: "paid",
+          expiresAt: { gt: new Date() },
+        },
+        include: {
+          package: {
+            select: { featuredQuota: true, boostQuota: true, refreshQuota: true },
+          },
+          benefits: {
+            select: { benefitType: true },
+          },
+        },
+      })
+    : [];
+
+  const remainingQuota = { featured: 0, boost: 0, refresh: 0 };
+
+  for (const order of paidOrders) {
+    const used = {
+      featured: order.benefits.filter((benefit) => benefit.benefitType === "featured").length,
+      boost: order.benefits.filter((benefit) => benefit.benefitType === "boost").length,
+      refresh: order.benefits.filter((benefit) => benefit.benefitType === "refresh").length,
+    };
+    remainingQuota.featured += Math.max(0, order.package.featuredQuota - used.featured);
+    remainingQuota.boost += Math.max(0, order.package.boostQuota - used.boost);
+    remainingQuota.refresh += Math.max(0, order.package.refreshQuota - used.refresh);
+  }
 
   return (
     <section>
@@ -142,6 +175,8 @@ export default async function EditListingPage({
         </div>
       )}
 
+      {isPublished ? <ListingBenefitSection listingId={listing.id} remainingQuota={remainingQuota} featuredActive={listing.isFeatured} /> : null}
+
       <div className="mt-6 rounded-md border border-[#dde1e7] bg-white p-4">
         <h2 className="text-base font-extrabold">Lịch sử kiểm duyệt</h2>
         <div className="mt-3 grid gap-3">
@@ -159,6 +194,81 @@ export default async function EditListingPage({
             </div>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function ListingBenefitSection({
+  listingId,
+  remainingQuota,
+  featuredActive,
+}: {
+  listingId: string;
+  remainingQuota: { featured: number; boost: number; refresh: number };
+  featuredActive: boolean;
+}) {
+  const benefits = [
+    {
+      type: "featured",
+      label: "Nổi bật",
+      description: "Hiển thị ưu tiên với nhãn tin nổi bật trong 30 ngày.",
+      remaining: remainingQuota.featured,
+      active: featuredActive,
+      accent: "#8a5a00",
+    },
+    {
+      type: "boost",
+      label: "Đẩy tin",
+      description: "Kéo tin lên đầu danh sách tìm kiếm trong 30 ngày.",
+      remaining: remainingQuota.boost,
+      active: false,
+      accent: "#2f5ea8",
+    },
+    {
+      type: "refresh",
+      label: "Làm mới",
+      description: "Cập nhật thời gian đăng, tin xuất hiện như mới đăng.",
+      remaining: remainingQuota.refresh,
+      active: false,
+      accent: "#16794f",
+    },
+  ];
+
+  return (
+    <section className="rounded-md border border-[#dde1e7] bg-white p-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold uppercase tracking-normal text-[#c7352d]">Quyền lợi gói đăng tin</p>
+          <h2 className="mt-1 text-base font-extrabold">Nổi bật · Đẩy tin · Làm mới</h2>
+        </div>
+        <Link href="/tai-khoan/goi-dang-tin" className="text-sm font-extrabold text-[#c7352d]">Mua thêm gói</Link>
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {benefits.map((benefit) => (
+          <div key={benefit.type} className="rounded-md border border-[#edf0f3] bg-[#fafbfc] p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-extrabold text-[#1f2430]">{benefit.label}</p>
+              <span className={`rounded-md border px-2 py-0.5 text-xs font-extrabold ${benefit.active ? "border-[#f3d38b] bg-[#fff8e8] text-[#8a5a00]" : "border-[#d5dae2] bg-white text-[#6c7280]"}`}>
+                {benefit.active ? "Đang kích hoạt" : `${benefit.remaining} lượt còn lại`}
+              </span>
+            </div>
+            <p className="mt-2 text-xs font-semibold leading-5 text-[#6c7280]">{benefit.description}</p>
+            <form action={applyBenefit} className="mt-3">
+              <input type="hidden" name="listingId" value={listingId} />
+              <input type="hidden" name="benefitType" value={benefit.type} />
+              <button
+                type="submit"
+                disabled={benefit.remaining <= 0}
+                className="w-full rounded-md border px-3 py-2 text-xs font-extrabold disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ borderColor: benefit.accent, color: benefit.accent }}
+              >
+                {benefit.type === "featured" ? "Áp dụng nổi bật" : benefit.type === "boost" ? "Áp dụng đẩy tin" : "Làm mới tin"}
+              </button>
+            </form>
+          </div>
+        ))}
       </div>
     </section>
   );

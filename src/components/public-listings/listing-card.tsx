@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Category, Listing, ListingMedia, Location, Media } from "@/generated/prisma/client";
+import { buildListingDetailPath } from "@/lib/listing-url";
 
 type ListingCardProps = {
   listing: Listing & {
@@ -13,10 +14,11 @@ type ListingCardProps = {
 export function ListingCard({ listing }: ListingCardProps) {
   const cover = listing.media.find((item) => item.type === "image") ?? listing.media[0];
   const transactionLabel = listing.transactionType === "sale" ? "Bán" : "Cho thuê";
+  const detailHref = buildListingDetailPath(listing);
 
   return (
     <article className="overflow-hidden rounded-md border border-[#dde1e7] bg-white shadow-[0_14px_40px_rgba(20,28,45,0.04)] transition hover:border-[#c7352d]">
-      <Link href={`/tin-dang/${listing.publicId}`} className="block">
+      <Link href={detailHref} className="block">
         {cover?.type === "image" ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={cover.media.publicUrl} alt={cover.caption ?? listing.title} className="aspect-[16/9] w-full bg-[#f0f2f5] object-cover" />
@@ -31,7 +33,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase tracking-normal text-[#c7352d]">{listing.category.name}</p>
             <h2 className="mt-1 line-clamp-2 text-lg font-extrabold leading-snug text-[#1f2430]">
-              <Link href={`/tin-dang/${listing.publicId}`} className="hover:text-[#c7352d]">
+              <Link href={detailHref} className="hover:text-[#c7352d]">
                 {listing.title}
               </Link>
             </h2>
@@ -43,7 +45,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           <Metric label="Diện tích" value={listing.area ? `${listing.area.toString()} m2` : "-"} />
           <Metric label="Đơn giá" value={listing.pricePerSqm ? `${listing.pricePerSqm.toString()}/m2` : "-"} />
         </div>
-        <p className="mt-4 text-sm leading-6 text-[#5f6675]">{[listing.district?.fullName, listing.province?.fullName].filter(Boolean).join(", ") || listing.addressText || "Chưa cập nhật vị trí"}</p>
+        <p className="mt-4 text-sm leading-6 text-[#5f6675]">{listing.district?.fullName ?? listing.province?.fullName ?? listing.addressText ?? "Chưa cập nhật vị trí"}</p>
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#edf0f3] pt-3 text-xs text-[#6c7280]">
           <span className="font-mono">{listing.publicId}</span>
           <span>{listing.publishedAt?.toISOString().slice(0, 10) ?? "Đã đăng"}</span>

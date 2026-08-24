@@ -9,6 +9,7 @@ import { listingModeratorRoleCodes, listingPosterRoleCodes } from "@/lib/auth/ro
 import { formDecimalString, formInt, formString } from "@/lib/forms";
 import { slugify } from "@/lib/slug";
 import { writeAuditLog } from "@/lib/audit";
+import { buildListingDetailPath } from "@/lib/listing-url";
 import type { LocationType, MediaStatus, MediaType, TransactionType } from "@/generated/prisma/client";
 
 const transactionTypes = new Set<TransactionType>(["sale", "rent"]);
@@ -49,6 +50,20 @@ function pricePerSqm(price: string | null, area: string | null): string | null {
   }
 
   return (parsedPrice / parsedArea).toFixed(2);
+}
+
+function assertPositiveDecimal(value: string | null, field: string): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error(`${field} phải lớn hơn 0.`);
+  }
+
+  return value;
 }
 
 function requiredPublicUrl(value: string | null): string {
@@ -110,6 +125,7 @@ async function requireEditableOwnerListing(listingId: string, ownerUserId: strin
     select: {
       id: true,
       publicId: true,
+      slug: true,
       status: true,
     },
   });
@@ -183,8 +199,8 @@ async function readListingPayload(formData: FormData) {
 
   const title = required(formString(formData, "title"), "tiêu đề");
   const description = required(formString(formData, "description"), "mô tả");
-  const price = formDecimalString(formData, "price");
-  const area = formDecimalString(formData, "area");
+  const price = assertPositiveDecimal(formDecimalString(formData, "price"), "Giá");
+  const area = assertPositiveDecimal(formDecimalString(formData, "area"), "Diện tích");
   const provinceId = await assertLocation(formString(formData, "provinceId"), "province");
   const districtId = await assertLocation(formString(formData, "districtId"), "district");
   const wardId = await assertLocation(formString(formData, "wardId"), "ward");
@@ -392,7 +408,9 @@ export async function deleteOwnListing(formData: FormData) {
   revalidatePath("/tai-khoan/tin-dang");
   revalidatePath(`/tai-khoan/tin-dang/${after.id}`);
   revalidatePath("/tin-dang");
-  revalidatePath(`/tin-dang/${after.publicId}`);
+  revalidatePath("/nha-dat-ban");
+  revalidatePath("/nha-dat-cho-thue");
+  revalidatePath(buildListingDetailPath(after));
   redirect("/tai-khoan/tin-dang");
 }
 
@@ -440,7 +458,7 @@ export async function addListingMedia(formData: FormData) {
 
   revalidatePath(`/tai-khoan/tin-dang/${listing.id}`);
   revalidatePath(`/admin/listings/${listing.id}`);
-  revalidatePath(`/tin-dang/${listing.publicId}`);
+  revalidatePath(buildListingDetailPath(listing));
   redirect(`/tai-khoan/tin-dang/${listing.id}`);
 }
 
@@ -494,7 +512,7 @@ export async function updateListingMedia(formData: FormData) {
 
   revalidatePath(`/tai-khoan/tin-dang/${listing.id}`);
   revalidatePath(`/admin/listings/${listing.id}`);
-  revalidatePath(`/tin-dang/${listing.publicId}`);
+  revalidatePath(buildListingDetailPath(listing));
   redirect(`/tai-khoan/tin-dang/${listing.id}`);
 }
 
@@ -539,7 +557,7 @@ export async function removeListingMedia(formData: FormData) {
 
   revalidatePath(`/tai-khoan/tin-dang/${listing.id}`);
   revalidatePath(`/admin/listings/${listing.id}`);
-  revalidatePath(`/tin-dang/${listing.publicId}`);
+  revalidatePath(buildListingDetailPath(listing));
   redirect(`/tai-khoan/tin-dang/${listing.id}`);
 }
 
@@ -612,13 +630,16 @@ export async function approveListing(formData: FormData) {
   revalidatePath("/admin/listings");
   revalidatePath("/tai-khoan/tin-dang");
   revalidatePath("/tin-dang");
-  revalidatePath(`/tin-dang/${after.publicId}`);
+  revalidatePath("/nha-dat-ban");
+  revalidatePath("/nha-dat-cho-thue");
+  revalidatePath(buildListingDetailPath(after));
   redirect("/admin/listings");
 }
 
 export async function hideListingByAdmin(formData: FormData) {
   const currentSession = await requireRole(listingModeratorRoleCodes);
   const id = required(formString(formData, "id"), "mã tin đăng");
+  const reasonCode = formString(formData, "reasonCode") ?? "policy_violation";
   const before = await db.listing.findUniqueOrThrow({ where: { id } });
 
   if (before.status === "hidden") {
@@ -642,9 +663,10 @@ export async function hideListingByAdmin(formData: FormData) {
       listingId: after.id,
       actorUserId: currentSession.user.id,
       action: "hide",
+      reasonCode,
+      note: formString(formData, "note"),
       beforeStatus: before.status,
       afterStatus: after.status,
-      note: formString(formData, "note"),
     },
   });
 
@@ -661,7 +683,9 @@ export async function hideListingByAdmin(formData: FormData) {
   revalidatePath(`/admin/listings/${after.id}`);
   revalidatePath("/tai-khoan/tin-dang");
   revalidatePath("/tin-dang");
-  revalidatePath(`/tin-dang/${after.publicId}`);
+  revalidatePath("/nha-dat-ban");
+  revalidatePath("/nha-dat-cho-thue");
+  revalidatePath(buildListingDetailPath(after));
   redirect("/admin/listings");
 }
 
@@ -708,7 +732,9 @@ export async function deleteListingByAdmin(formData: FormData) {
   revalidatePath(`/admin/listings/${after.id}`);
   revalidatePath("/tai-khoan/tin-dang");
   revalidatePath("/tin-dang");
-  revalidatePath(`/tin-dang/${after.publicId}`);
+  revalidatePath("/nha-dat-ban");
+  revalidatePath("/nha-dat-cho-thue");
+  revalidatePath(buildListingDetailPath(after));
   redirect("/admin/listings");
 }
 
@@ -757,6 +783,58 @@ export async function rejectListing(formData: FormData) {
   revalidatePath("/admin/listings");
   revalidatePath("/tai-khoan/tin-dang");
   revalidatePath("/tin-dang");
-  revalidatePath(`/tin-dang/${after.publicId}`);
+  revalidatePath("/nha-dat-ban");
+  revalidatePath("/nha-dat-cho-thue");
+  revalidatePath(buildListingDetailPath(after));
+  redirect("/admin/listings");
+}
+
+export async function requestEditListing(formData: FormData) {
+  const currentSession = await requireRole(listingModeratorRoleCodes);
+  const id = required(formString(formData, "id"), "mã tin đăng");
+  const note = required(formString(formData, "note"), "ghi chú yêu cầu chỉnh sửa");
+  const before = await db.listing.findUniqueOrThrow({ where: { id } });
+
+  if (!reviewableStatuses.has(before.status)) {
+    throw new Error("Chỉ tin đang chờ duyệt mới được yêu cầu chỉnh sửa.");
+  }
+
+  const after = await db.listing.update({
+    where: { id },
+    data: {
+      status: "rejected",
+      moderationStatus: "rejected",
+      publishedAt: null,
+      expiredAt: null,
+    },
+  });
+
+  await db.listingModerationEvent.create({
+    data: {
+      listingId: after.id,
+      actorUserId: currentSession.user.id,
+      action: "request_edit",
+      reasonCode: "edit_requested",
+      note,
+      beforeStatus: before.status,
+      afterStatus: after.status,
+    },
+  });
+
+  await writeAuditLog({
+    actorUserId: currentSession.user.id,
+    entityType: "listing",
+    entityId: after.id,
+    action: "listing.request_edit",
+    before,
+    after,
+  });
+
+  revalidatePath("/admin/listings");
+  revalidatePath("/tai-khoan/tin-dang");
+  revalidatePath("/tin-dang");
+  revalidatePath("/nha-dat-ban");
+  revalidatePath("/nha-dat-cho-thue");
+  revalidatePath(buildListingDetailPath(after));
   redirect("/admin/listings");
 }

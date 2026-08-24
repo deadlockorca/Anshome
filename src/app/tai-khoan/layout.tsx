@@ -7,6 +7,11 @@ const accountNavItems = [
   { label: "Tin đăng", href: "/tai-khoan/tin-dang" },
   { label: "Tạo tin mới", href: "/tai-khoan/tin-dang/tao-moi" },
   { label: "Khách liên hệ", href: "/tai-khoan/leads" },
+  { label: "Tin đã lưu", href: "/tai-khoan/yeu-thich" },
+  { label: "Tìm kiếm đã lưu", href: "/tai-khoan/tim-kiem-da-luu" },
+  { label: "Gói đăng tin", href: "/tai-khoan/goi-dang-tin" },
+  { label: "Thông báo", href: "/tai-khoan/thong-bao" },
+  { label: "Cài đặt", href: "/tai-khoan/cai-dat" },
 ];
 
 export default async function AccountLayout({

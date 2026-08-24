@@ -2,7 +2,14 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { approveListing, deleteListingByAdmin, hideListingByAdmin, rejectListing } from "@/app/tai-khoan/tin-dang/listing-actions";
+import {
+  approveListing,
+  deleteListingByAdmin,
+  hideListingByAdmin,
+  rejectListing,
+  requestEditListing,
+} from "@/app/tai-khoan/tin-dang/listing-actions";
+import { hideListingReasons, listingModerationReasons } from "@/lib/listings/moderation";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ListingMediaSection } from "@/components/listings/listing-media-section";
 import { listingModeratorRoleCodes } from "@/lib/auth/roles";
@@ -15,17 +22,15 @@ const transactionTypeLabel: Record<string, string> = {
   rent: "Cho thuê",
 };
 
-const reasonLabel: Record<string, string> = {
-  content_quality: "Chất lượng nội dung",
-  missing_information: "Thiếu thông tin",
-  duplicate: "Trùng tin",
-  policy_violation: "Vi phạm chính sách",
-};
+const reasonLabel: Record<string, string> = Object.fromEntries(
+  listingModerationReasons.map((reason) => [reason.code, reason.label]),
+);
 
 const moderationActionLabel: Record<string, string> = {
   submit: "Gửi duyệt",
   approve: "Duyệt tin",
   reject: "Từ chối",
+  request_edit: "Yêu cầu chỉnh sửa",
   hide: "Ẩn tin",
   delete: "Xóa tin",
 };
@@ -154,14 +159,20 @@ export default async function AdminListingDetailPage({
               <form action={rejectListing} className="mt-4 grid gap-2">
                 <input type="hidden" name="id" value={listing.id} />
                 <select name="reasonCode" defaultValue="content_quality" className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm font-bold text-[#1f2430]">
-                  <option value="content_quality">Chất lượng nội dung</option>
-                  <option value="missing_information">Thiếu thông tin</option>
-                  <option value="duplicate">Trùng tin</option>
-                  <option value="policy_violation">Vi phạm chính sách</option>
+                  {listingModerationReasons.map((reason) => (
+                    <option key={reason.code} value={reason.code}>{reason.label}</option>
+                  ))}
                 </select>
                 <textarea name="note" required rows={3} placeholder="Ghi chú từ chối" className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm text-[#1f2430]" />
                 <button type="submit" className="rounded-md border border-[#c7352d] px-3 py-2 text-sm font-extrabold text-[#c7352d]">
                   Từ chối
+                </button>
+              </form>
+              <form action={requestEditListing} className="mt-4 grid gap-2 border-t border-[#edf0f3] pt-4">
+                <input type="hidden" name="id" value={listing.id} />
+                <textarea name="note" required rows={3} placeholder="Ghi chú yêu cầu chỉnh sửa" className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm text-[#1f2430]" />
+                <button type="submit" className="rounded-md border border-[#8a5a00] px-3 py-2 text-sm font-extrabold text-[#8a5a00]">
+                  Yêu cầu chỉnh sửa
                 </button>
               </form>
             </section>
@@ -173,6 +184,11 @@ export default async function AdminListingDetailPage({
               {canHide ? (
                 <form action={hideListingByAdmin} className="mt-4 grid gap-2">
                   <input type="hidden" name="id" value={listing.id} />
+                  <select name="reasonCode" defaultValue="policy_violation" className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm font-bold text-[#1f2430]">
+                    {hideListingReasons.map((reason) => (
+                      <option key={reason.code} value={reason.code}>{reason.label}</option>
+                    ))}
+                  </select>
                   <textarea name="note" rows={2} placeholder="Lý do ẩn tin" className="rounded-md border border-[#d5dae2] px-3 py-2 text-sm text-[#1f2430]" />
                   <button type="submit" className="rounded-md border border-[#8a5a00] px-3 py-2 text-sm font-extrabold text-[#8a5a00]">
                     Ẩn tin khỏi public

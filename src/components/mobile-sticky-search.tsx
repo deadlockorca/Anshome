@@ -40,7 +40,8 @@ export function MobileStickySearch({ forceCompact = false, placeholder = "Thuê 
     }
 
     params.set("transactionType", transactionType);
-    router.push(`/tin-dang?${params.toString()}`);
+    const searchHref = transactionType === "rent" ? "/nha-dat-cho-thue" : "/nha-dat-ban";
+    router.push(`${searchHref}?${params.toString()}`);
   }
 
   return (

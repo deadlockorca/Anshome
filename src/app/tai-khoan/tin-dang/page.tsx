@@ -101,7 +101,7 @@ export default async function AccountListingsPage() {
                   <p className="mt-1 font-mono text-xs text-[#6c7280]">{listing.publicId}</p>
                 </td>
                 <td className="px-4 py-3">{listing.category.name}</td>
-                <td className="px-4 py-3 text-[#5f6675]">{[listing.district?.fullName, listing.province?.fullName].filter(Boolean).join(", ") || "-"}</td>
+                <td className="px-4 py-3 text-[#5f6675]">{listing.district?.fullName ?? listing.province?.fullName ?? "-"}</td>
                 <td className="px-4 py-3 text-right">{listing.price ? `${listing.price.toString()} ${listing.priceUnit ?? ""}` : "-"}</td>
                 <td className="px-4 py-3 text-right">{listing.area ? `${listing.area.toString()} m2` : "-"}</td>
                 <td className="px-4 py-3"><StatusBadge value={listing.status} /></td>

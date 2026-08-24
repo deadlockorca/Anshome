@@ -3,7 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Category, Listing, ListingMedia, Location, Media } from "@/generated/prisma/client";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { LocationMap } from "@/components/ui/location-map";
+import { ProjectLeadForm } from "@/components/projects/project-lead-form";
+import { ProjectReviewForm } from "@/components/projects/project-review-form";
 import { db } from "@/lib/db";
+import { buildListingDetailPath } from "@/lib/listing-url";
 
 export const dynamic = "force-dynamic";
 
@@ -145,7 +150,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const location = [project.district?.fullName, project.province?.fullName].filter(Boolean).join(", ");
+  const location = project.district?.fullName ?? project.province?.fullName ?? "";
 
   return {
     title: `${project.name} | Anshome`,
@@ -227,6 +232,22 @@ export default async function ProjectDetailPage({ params }: Props) {
           },
         },
       },
+      reviews: {
+        where: {
+          status: "approved",
+        },
+        orderBy: [{ createdAt: "desc" }],
+        take: 20,
+        include: {
+          user: {
+            include: {
+              profile: {
+                select: { displayName: true },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -240,6 +261,10 @@ export default async function ProjectDetailPage({ params }: Props) {
       .join(", ") ||
     project.addressText ||
     "Đang cập nhật";
+  const mapLatitude =
+    (project.latitude ?? project.ward?.latitude ?? project.district?.latitude ?? project.province?.latitude)?.toString();
+  const mapLongitude =
+    (project.longitude ?? project.ward?.longitude ?? project.district?.longitude ?? project.province?.longitude)?.toString();
   const images = project.media.filter((item) => item.type === "image");
   const heroImage = images[0];
   const thumbImages = images.slice(1, 5);
@@ -247,6 +272,7 @@ export default async function ProjectDetailPage({ params }: Props) {
   const currentPrice = formatPrice(project.priceMin, project.priceUnit);
   const currentScale = formatScale(project.landArea);
   const developerName = project.developer?.name ?? "Đang cập nhật";
+  const amenities = Array.isArray(project.amenities) ? project.amenities.filter((item): item is string => typeof item === "string") : [];
   const navItems = [
     { label: "Bán & Cho thuê", description: "Danh sách tin rao", href: "#tin-rao" },
     { label: "Tổng quan", description: "Giới thiệu về dự án", href: "#tong-quan", active: true },
@@ -347,6 +373,8 @@ export default async function ProjectDetailPage({ params }: Props) {
                 <SummaryItem label="Chủ đầu tư" value={developerName} />
                 <SummaryItem label="Loại hình" value={project.category?.name ?? "Dự án"} />
                 <SummaryItem label="Pháp lý" value={project.legalStatus ?? "Đang cập nhật"} />
+                <SummaryItem label="Số căn hộ" value={project.apartmentCount ? project.apartmentCount.toLocaleString("vi-VN") : "Đang cập nhật"} />
+                <SummaryItem label="Số tòa" value={project.towerCount ? String(project.towerCount) : "Đang cập nhật"} />
               </div>
               <p className="mt-5 whitespace-pre-wrap text-sm leading-7 text-[#384052]">
                 {project.description ?? "Thông tin dự án đang được cập nhật."}
@@ -356,7 +384,7 @@ export default async function ProjectDetailPage({ params }: Props) {
             <section id="tin-rao" className="mt-5 rounded-md border border-[#e5e8ef] bg-white p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-2xl font-extrabold">Tin mua bán tại {project.name}</h2>
-                <Link href="/tin-dang" className="text-sm font-extrabold text-[#c7352d]">Xem tất cả</Link>
+                <Link href="/nha-dat-ban" className="text-sm font-extrabold text-[#c7352d]">Xem tất cả</Link>
               </div>
               {project.listings.length > 0 ? (
                 <div className="mt-4 grid gap-3">
@@ -388,8 +416,8 @@ export default async function ProjectDetailPage({ params }: Props) {
             <section id="vi-tri" className="mt-5 rounded-md border border-[#e5e8ef] bg-white p-5">
               <h2 className="text-2xl font-extrabold">Vị trí dự án {project.name}</h2>
               <p className="mt-2 text-sm leading-6 text-[#5f6675]">{location}</p>
-              <div className="mt-4 grid min-h-[260px] place-items-center rounded-md border border-[#dde1e7] bg-[#eef1f4] text-center text-sm font-extrabold text-[#6c7280]">
-                Bản đồ dự án
+              <div className="mt-4">
+                <LocationMap address={location} latitude={mapLatitude} longitude={mapLongitude} heightClass="h-[320px]" />
               </div>
             </section>
 
@@ -410,6 +438,82 @@ export default async function ProjectDetailPage({ params }: Props) {
                 <FaqItem question={`Trạng thái dự án ${project.name}?`} answer={currentStatus} />
               </div>
             </section>
+
+            <section id="danh-gia" className="mt-5 rounded-md border border-[#e5e8ef] bg-white p-5">
+              <h2 className="text-2xl font-extrabold">Đánh giá dự án</h2>
+              <div className="mt-5 grid gap-6 md:grid-cols-[220px_1fr]">
+                <div className="rounded-md bg-[#f7f8fa] p-5 text-center">
+                  {project.ratingCount > 0 && project.ratingAverage ? (
+                    <>
+                      <p className="text-5xl font-extrabold text-[#1f2430]">{formatDecimal(project.ratingAverage)}</p>
+                      <div className="mt-2 flex justify-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <StarIcon key={star} filled={star <= Math.round(Number(project.ratingAverage))} />
+                        ))}
+                      </div>
+                      <p className="mt-2 text-sm font-bold text-[#6c7280]">({project.ratingCount} đánh giá)</p>
+                    </>
+                  ) : (
+                    <p className="py-4 text-sm font-bold text-[#8a8f99]">Chưa có đánh giá nào.</p>
+                  )}
+                </div>
+                {project.ratingCount > 0 ? (
+                  <div className="grid gap-2">
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const breakdown = (project.ratingBreakdown as Record<string, number> | null) ?? {};
+                      const count = breakdown[String(star)] ?? 0;
+                      const share = project.ratingCount > 0 ? (count / project.ratingCount) * 100 : 0;
+                      return (
+                        <div key={star} className="flex items-center gap-3 text-sm font-bold text-[#384052]">
+                          <span className="w-6 shrink-0">{star}★</span>
+                          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#e8eaee]">
+                            <div className="h-full rounded-full bg-[#f5a623]" style={{ width: `${share}%` }} />
+                          </div>
+                          <span className="w-6 shrink-0 text-right text-[#6c7280]">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+
+              {project.reviews.length > 0 ? (
+                <div className="mt-6 grid gap-4">
+                  {project.reviews.map((review) => (
+                    <article key={review.id} className="rounded-md border border-[#e5e8ef] p-4">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#c7352d] text-sm font-extrabold text-white">
+                          {(review.user.profile?.displayName ?? "Ẩn danh").charAt(0).toUpperCase()}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-extrabold text-[#1f2430]">{review.user.profile?.displayName ?? "Ẩn danh"}</p>
+                          <div className="mt-0.5 flex items-center gap-2">
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <StarIcon key={star} filled={star <= review.rating} />
+                              ))}
+                            </div>
+                            <span className="text-xs font-bold text-[#8a8f99]">
+                              {new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(review.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {review.title ? <h3 className="mt-3 font-extrabold text-[#1f2430]">{review.title}</h3> : null}
+                      {review.content ? <p className="mt-1 text-sm leading-6 text-[#5f6675]">{review.content}</p> : null}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-6 text-sm font-bold text-[#8a8f99]">Chưa có đánh giá nào cho dự án này.</p>
+              )}
+
+              <div className="mt-8 border-t border-[#e5e8ef] pt-6">
+                <h3 className="text-lg font-extrabold">Viết đánh giá của bạn</h3>
+                <p className="mt-1 text-sm leading-6 text-[#5f6675]">Chia sẻ trải nghiệm và cảm nhận của bạn về dự án.</p>
+                <ProjectReviewForm projectId={project.id} />
+              </div>
+            </section>
           </article>
 
           <aside className="grid content-start gap-4">
@@ -427,26 +531,22 @@ export default async function ProjectDetailPage({ params }: Props) {
             <section className="rounded-md border border-[#e5e8ef] bg-white p-4">
               <h2 className="text-lg font-extrabold">Liên hệ tư vấn miễn phí</h2>
               <p className="mt-2 text-sm leading-6 text-[#5f6675]">Nhận thông tin mới nhất về dự án và các tin rao liên quan.</p>
-              <form className="mt-4 grid gap-3">
-                <input className="rounded-md border border-[#d7dbe3] px-3 py-2 text-sm font-bold outline-none focus:border-[#c7352d]" placeholder="Họ và tên" />
-                <input className="rounded-md border border-[#d7dbe3] px-3 py-2 text-sm font-bold outline-none focus:border-[#c7352d]" placeholder="Số điện thoại" />
-                <button type="button" className="rounded-md bg-[#c7352d] px-4 py-3 text-sm font-extrabold text-white">
-                  Gửi thông tin
-                </button>
-              </form>
+              <ProjectLeadForm projectId={project.id} />
             </section>
 
             <section className="rounded-md border border-[#e5e8ef] bg-white p-4">
               <h2 className="text-lg font-extrabold">Tiện ích</h2>
               <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold text-[#384052]">
-                {["Công viên", "Bãi đỗ xe", "Hồ bơi", "Trường học", "Siêu thị", "An ninh"].map((item) => (
+                {amenities.map((item) => (
                   <span key={item} className="rounded-full bg-[#f5f6f8] px-3 py-1.5">{item}</span>
                 ))}
               </div>
+              {amenities.length === 0 ? <p className="mt-3 text-sm font-bold text-[#8a8f99]">Đang cập nhật</p> : null}
             </section>
           </aside>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }
@@ -480,12 +580,12 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 
 function ProjectListingCard({ listing }: { listing: RelatedListing }) {
   const cover = listing.media.find((item) => item.type === "image") ?? listing.media[0];
-  const location = [listing.district?.fullName, listing.province?.fullName].filter(Boolean).join(", ") || listing.addressText || "Đang cập nhật";
+  const location = listing.district?.fullName ?? listing.province?.fullName ?? listing.addressText ?? "Đang cập nhật";
   const area = formatDecimal(listing.area);
 
   return (
     <article className="grid overflow-hidden rounded-md border border-[#e5e8ef] bg-white transition hover:border-[#c7352d] md:grid-cols-[180px_1fr]">
-      <Link href={`/tin-dang/${listing.publicId}`} className="block bg-[#f0f2f5]">
+      <Link href={buildListingDetailPath(listing)} className="block bg-[#f0f2f5]">
         {cover?.type === "image" ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={cover.media.publicUrl} alt={cover.caption ?? listing.title} className="h-full min-h-[140px] w-full object-cover" />
@@ -496,7 +596,7 @@ function ProjectListingCard({ listing }: { listing: RelatedListing }) {
       <div className="min-w-0 p-4">
         <p className="text-xs font-bold uppercase text-[#c7352d]">{listing.category.name}</p>
         <h3 className="mt-1 line-clamp-2 text-lg font-extrabold leading-snug text-[#1f2430]">
-          <Link href={`/tin-dang/${listing.publicId}`} className="hover:text-[#c7352d]">
+          <Link href={buildListingDetailPath(listing)} className="hover:text-[#c7352d]">
             {listing.title}
           </Link>
         </h3>
@@ -533,5 +633,22 @@ function Detail({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-bold uppercase text-[#6c7280]">{label}</dt>
       <dd className="mt-1 font-bold text-[#1f2430]">{value}</dd>
     </div>
+  );
+}
+
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      aria-hidden
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill={filled ? "#f5a623" : "none"}
+      stroke={filled ? "#f5a623" : "#c3c7cf"}
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    >
+      <path d="M12 2.5l2.94 6.03 6.67.84-4.9 4.61 1.26 6.6L12 17.4l-5.97 3.18 1.26-6.6-4.9-4.61 6.67-.84L12 2.5z" />
+    </svg>
   );
 }

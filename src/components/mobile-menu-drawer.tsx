@@ -22,16 +22,16 @@ const mobileMenuItems: MobileMenuItem[] = [
     icon: "sale",
     submenu: [
       { label: "Bán căn hộ chung cư", href: "/ban-can-ho-chung-cu" },
-      { label: "Bán chung cư mini, căn hộ dịch vụ", href: "/ban-chung-cu-mini" },
+      { label: "Bán chung cư mini, căn hộ dịch vụ", href: "/ban-chung-cu-mini-can-ho-dich-vu" },
       { label: "Bán nhà riêng", href: "/ban-nha-rieng" },
-      { label: "Bán nhà biệt thự, liền kề", href: "/ban-biet-thu-lien-ke" },
+      { label: "Bán nhà biệt thự, liền kề", href: "/ban-nha-biet-thu-lien-ke" },
       { label: "Bán nhà mặt phố", href: "/ban-nha-mat-pho" },
-      { label: "Bán shophouse, nhà phố thương mại", href: "/ban-shophouse" },
+      { label: "Bán shophouse, nhà phố thương mại", href: "/ban-shophouse-nha-pho-thuong-mai" },
       { label: "Bán đất nền dự án", href: "/ban-dat-nen-du-an" },
       { label: "Bán đất", href: "/ban-dat" },
-      { label: "Bán trang trại, khu nghỉ dưỡng", href: "/ban-trang-trai" },
+      { label: "Bán trang trại, khu nghỉ dưỡng", href: "/ban-trang-trai-khu-nghi-duong" },
       { label: "Bán condotel", href: "/ban-condotel" },
-      { label: "Bán kho, nhà xưởng", href: "/ban-kho-xuong" },
+      { label: "Bán kho, nhà xưởng", href: "/ban-kho-nha-xuong" },
       { label: "Bán loại bất động sản khác", href: "/ban-bat-dong-san-khac" },
     ],
   },
@@ -41,15 +41,15 @@ const mobileMenuItems: MobileMenuItem[] = [
     icon: "rent",
     submenu: [
       { label: "Cho thuê căn hộ chung cư", href: "/cho-thue-can-ho-chung-cu" },
-      { label: "Cho thuê chung cư mini, căn hộ dịch vụ", href: "/cho-thue-chung-cu-mini" },
+      { label: "Cho thuê chung cư mini, căn hộ dịch vụ", href: "/cho-thue-chung-cu-mini-can-ho-dich-vu" },
       { label: "Cho thuê nhà riêng", href: "/cho-thue-nha-rieng" },
-      { label: "Cho thuê nhà biệt thự, liền kề", href: "/cho-thue-biet-thu-lien-ke" },
+      { label: "Cho thuê nhà biệt thự, liền kề", href: "/cho-thue-nha-biet-thu-lien-ke" },
       { label: "Cho thuê nhà mặt phố", href: "/cho-thue-nha-mat-pho" },
-      { label: "Cho thuê shophouse, nhà phố thương mại", href: "/cho-thue-shophouse" },
-      { label: "Cho thuê nhà trọ, phòng trọ", href: "/cho-thue-phong-tro" },
+      { label: "Cho thuê shophouse, nhà phố thương mại", href: "/cho-thue-shophouse-nha-pho-thuong-mai" },
+      { label: "Cho thuê nhà trọ, phòng trọ", href: "/cho-thue-nha-tro-phong-tro" },
       { label: "Cho thuê văn phòng", href: "/cho-thue-van-phong" },
       { label: "Cho thuê, sang nhượng cửa hàng, ki ốt", href: "/cho-thue-cua-hang-ki-ot" },
-      { label: "Cho thuê kho, nhà xưởng, đất", href: "/cho-thue-kho-xuong-dat" },
+      { label: "Cho thuê kho, nhà xưởng, đất", href: "/cho-thue-kho-nha-xuong-dat" },
       { label: "Cho thuê loại bất động sản khác", href: "/cho-thue-bat-dong-san-khac" },
     ],
   },
@@ -92,10 +92,11 @@ const mobileMenuItems: MobileMenuItem[] = [
     href: "/phan-tich-danh-gia",
     icon: "analysis",
     submenu: [
+      { label: "Biểu đồ giá", href: "/phan-tich-danh-gia/bieu-do-gia" },
+      { label: "Video đánh giá", href: "/phan-tich-danh-gia/video-danh-gia" },
       { label: "Báo cáo thị trường", href: "/phan-tich-danh-gia/bao-cao-thi-truong" },
-      { label: "Phân tích khu vực", href: "/phan-tich-danh-gia/phan-tich-khu-vuc" },
-      { label: "Tư vấn đầu tư", href: "/phan-tich-danh-gia/tu-van-dau-tu" },
-      { label: "So sánh dự án", href: "/phan-tich-danh-gia/so-sanh-du-an" },
+      { label: "Góc nhìn chuyên gia", href: "/phan-tich-danh-gia/goc-nhin-chuyen-gia" },
+      { label: "Interkative Story", href: "/phan-tich-danh-gia/interkative-story" },
     ],
   },
   {
@@ -104,9 +105,7 @@ const mobileMenuItems: MobileMenuItem[] = [
     icon: "directory",
     submenu: [
       { label: "Nhà môi giới", href: "/danh-ba/nha-moi-gioi" },
-      { label: "Doanh nghiệp BĐS", href: "/danh-ba/doanh-nghiep-bat-dong-san" },
-      { label: "Chủ đầu tư", href: "/danh-ba/chu-dau-tu" },
-      { label: "Đơn vị thiết kế", href: "/danh-ba/don-vi-thiet-ke" },
+      { label: "Doanh nghiệp", href: "/danh-ba/doanh-nghiep-bat-dong-san" },
     ],
   },
 ];
@@ -175,7 +174,7 @@ function MobileMenuIcon({ icon }: { icon: MobileMenuItem["icon"] }) {
   if (icon === "wiki") {
     return (
       <svg aria-hidden viewBox="0 0 32 32" className="mobile-drawer-icon">
-        <path d="M8 5H24V27H8C6.3 27 5 25.7 5 24V8C5 6.3 6.3 5 8 5Z" fill="none" stroke="currentColor" strokeWidth="2.2" />
+        <path d="M8 5H24V27H8C6.3 27 5 25.7 5 24V8C5 6.3 6.3 5 8 5Z" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
         <path d="M9 22H21M10 11H20M10 16H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       </svg>
     );
@@ -184,11 +183,11 @@ function MobileMenuIcon({ icon }: { icon: MobileMenuItem["icon"] }) {
   if (icon === "analysis") {
     return (
       <svg aria-hidden viewBox="0 0 32 32" className="mobile-drawer-icon">
-        <path d="M6 24V18H11V24H6ZM14 24V12H19V24H14ZM22 24V8H27V24H22Z" fill="none" stroke="currentColor" strokeWidth="2.2" />
-        <path d="M6 13L12 8L17 11L26 4M22 4H26V8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6 24V18H11V24H6ZM14 24V12H19V24H14ZM22 24V8H27V24H22Z" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
       </svg>
     );
   }
+
 
   return (
     <svg aria-hidden viewBox="0 0 32 32" className="mobile-drawer-icon">
@@ -221,7 +220,7 @@ export function MobileMenuDrawer() {
       setIsClosing(false);
       setExpandedLabel(null);
       closeTimerRef.current = null;
-    }, 260);
+    }, 340);
   }, [isClosing, shouldRender]);
 
   useEffect(() => {

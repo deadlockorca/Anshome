@@ -131,6 +131,19 @@ enum DomainEventStatus {
   failed
 }
 
+enum OrderStatus {
+  pending
+  paid
+  cancelled
+  refunded
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+}
+
 enum ListingDetailLinkGroup {
   area_market
   popular_property
@@ -165,6 +178,8 @@ model User {
   listingViews       ListingView[]
   notifications      Notification[]
   leadEvents         LeadEvent[]
+  orders             Order[]
+  projectReviews     ProjectReview[]
 
   @@map("users")
 }
@@ -242,12 +257,18 @@ model Agency {
   phone              String?
   email              String?
   address            String?            @db.Text
+  industry           String?
+  description        String?            @db.Text
+  provinceId         String?            @map("province_id")
+  districtId         String?            @map("district_id")
   verificationStatus VerificationStatus @default(unverified) @map("verification_status")
   status             String             @default("active")
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @updatedAt @map("updated_at")
 
   logoMedia Media?         @relation("AgencyLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
+  province  Location?      @relation("AgencyProvince", fields: [provinceId], references: [id], onDelete: SetNull)
+  district  Location?      @relation("AgencyDistrict", fields: [districtId], references: [id], onDelete: SetNull)
   members   AgencyMember[]
   listings  Listing[]
 
@@ -300,6 +321,8 @@ model Location {
   districtProjects       Project[]              @relation("ProjectDistrict")
   wardProjects           Project[]              @relation("ProjectWard")
   streetProjects         Project[]              @relation("ProjectStreet")
+  provinceAgencies       Agency[]               @relation("AgencyProvince")
+  districtAgencies       Agency[]               @relation("AgencyDistrict")
 
   @@unique([type, slug])
   @@index([parentId, type])
@@ -358,6 +381,9 @@ model Listing {
   contactZalo      String?                 @map("contact_zalo")
   isVerified       Boolean                 @default(false) @map("is_verified")
   isFeatured       Boolean                 @default(false) @map("is_featured")
+  featuredExpiresAt DateTime?              @map("featured_expires_at")
+  boostExpiresAt    DateTime?              @map("boost_expires_at")
+  refreshCount      Int                     @default(0) @map("refresh_count")
   publishedAt      DateTime?               @map("published_at")
   expiredAt        DateTime?               @map("expired_at")
   createdAt        DateTime                @default(now()) @map("created_at")
@@ -375,6 +401,7 @@ model Listing {
   media            ListingMedia[]
   leads            Lead[]
   favorites        Favorite[]
+  benefits         OrderBenefit[]
   views            ListingView[]
   moderationEvents ListingModerationEvent[]
 
@@ -556,8 +583,11 @@ model Project {
   addressText String?       @map("address_text") @db.Text
   latitude    Decimal?      @db.Decimal(10, 7)
   longitude   Decimal?      @db.Decimal(10, 7)
-  landArea    Decimal?      @map("land_area") @db.Decimal(14, 2)
-  totalUnits  Int?          @map("total_units")
+  landArea       Decimal?      @map("land_area") @db.Decimal(14, 2)
+  totalUnits     Int?          @map("total_units")
+  towerCount     Int?          @map("tower_count")
+  apartmentCount Int?          @map("apartment_count")
+  amenities      Json?         @map("amenities")
   priceMin    Decimal?      @map("price_min") @db.Decimal(18, 2)
   priceMax    Decimal?      @map("price_max") @db.Decimal(18, 2)
   priceUnit   String?       @map("price_unit")
@@ -575,6 +605,11 @@ model Project {
   listings  Listing[]
   media     ProjectMedia[]
   leads     Lead[]
+
+  ratingAverage   Decimal?       @map("rating_average") @db.Decimal(3, 2)
+  ratingCount     Int            @default(0) @map("rating_count")
+  ratingBreakdown Json?          @map("rating_breakdown")
+  reviews         ProjectReview[]
 
   @@unique([slug])
   @@index([status])
@@ -595,6 +630,25 @@ model ProjectMedia {
   @@unique([projectId, mediaId])
   @@index([mediaId])
   @@map("project_media")
+}
+
+model ProjectReview {
+  id        String       @id @default(cuid())
+  projectId String       @map("project_id")
+  userId    String       @map("user_id")
+  rating    Int
+  title     String?
+  content   String?      @db.Text
+  status    ReviewStatus @default(pending)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId, status])
+  @@map("project_reviews")
 }
 
 model Lead {
@@ -704,6 +758,7 @@ model Article {
   canonicalUrl   String?       @map("canonical_url")
   noindex        Boolean       @default(false)
   publishedAt    DateTime?     @map("published_at")
+  viewCount      Int           @default(0) @map("view_count")
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
@@ -807,4 +862,66 @@ model DomainEvent {
   @@index([status, createdAt])
   @@index([entityType, entityId])
   @@map("domain_events")
+}
+
+model ListingPackage {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String
+  description  String?  @db.Text
+  price        Decimal  @db.Decimal(18, 2)
+  currency     String   @default("VND")
+  durationDays Int      @default(30) @map("duration_days")
+  featuredQuota Int     @default(0) @map("featured_quota")
+  boostQuota   Int      @default(0) @map("boost_quota")
+  refreshQuota Int      @default(0) @map("refresh_quota")
+  maxListings  Int?     @map("max_listings")
+  isActive     Boolean  @default(true) @map("is_active")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  orders Order[]
+
+  @@index([isActive, sortOrder])
+  @@map("listing_packages")
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  userId        String      @map("user_id")
+  packageId     String      @map("package_id")
+  amount        Decimal     @db.Decimal(18, 2)
+  currency      String      @default("VND")
+  status        OrderStatus @default(pending)
+  paymentMethod String?     @map("payment_method")
+  transactionId String?     @map("transaction_id")
+  paidAt        DateTime?   @map("paid_at")
+  expiresAt     DateTime?   @map("expires_at")
+  note          String?     @db.Text
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  package  ListingPackage   @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  benefits OrderBenefit[]
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+model OrderBenefit {
+  id          String   @id @default(cuid())
+  orderId     String   @map("order_id")
+  listingId   String   @map("listing_id")
+  benefitType String   @map("benefit_type")
+  usedAt      DateTime @default(now()) @map("used_at")
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listing Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, listingId, benefitType])
+  @@index([listingId])
+  @@map("order_benefits")
 }

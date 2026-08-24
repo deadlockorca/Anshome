@@ -14,6 +14,40 @@ type TaxonomyLocation = Pick<Location, "id" | "name" | "slug" | "fullName" | "ty
 export const saleRootSlug = "nha-dat-ban";
 export const rentRootSlug = "nha-dat-cho-thue";
 
+export const categoryLabelBySlug: Record<string, string> = {
+  "ban-can-ho-chung-cu": "Bán căn hộ chung cư",
+  "ban-chung-cu-mini-can-ho-dich-vu": "Bán chung cư mini, căn hộ dịch vụ",
+  "ban-nha-rieng": "Bán nhà riêng",
+  "ban-nha-biet-thu-lien-ke": "Bán nhà biệt thự, liền kề",
+  "ban-nha-mat-pho": "Bán nhà mặt phố",
+  "ban-shophouse-nha-pho-thuong-mai": "Bán shophouse, nhà phố thương mại",
+  "ban-dat-nen-du-an": "Bán đất nền dự án",
+  "ban-dat": "Bán đất",
+  "ban-trang-trai-khu-nghi-duong": "Bán trang trại, khu nghỉ dưỡng",
+  "ban-condotel": "Bán condotel",
+  "ban-kho-nha-xuong": "Bán kho, nhà xưởng",
+  "ban-bat-dong-san-khac": "Bán loại bất động sản khác",
+  "cho-thue-can-ho-chung-cu": "Cho thuê căn hộ chung cư",
+  "cho-thue-chung-cu-mini-can-ho-dich-vu": "Cho thuê chung cư mini, căn hộ dịch vụ",
+  "cho-thue-nha-rieng": "Cho thuê nhà riêng",
+  "cho-thue-nha-biet-thu-lien-ke": "Cho thuê nhà biệt thự, liền kề",
+  "cho-thue-nha-mat-pho": "Cho thuê nhà mặt phố",
+  "cho-thue-nha-tro-phong-tro": "Cho thuê nhà trọ, phòng trọ",
+  "cho-thue-shophouse-nha-pho-thuong-mai": "Cho thuê shophouse, nhà phố thương mại",
+  "cho-thue-van-phong": "Cho thuê văn phòng",
+  "cho-thue-cua-hang-ki-ot": "Cho thuê, sang nhượng cửa hàng, ki ốt",
+  "cho-thue-kho-nha-xuong-dat": "Cho thuê kho, nhà xưởng, đất",
+  "cho-thue-bat-dong-san-khac": "Cho thuê loại bất động sản khác",
+};
+
+export function getCategoryDisplayLabel(category: { slug: string; name: string }): string {
+  return categoryLabelBySlug[category.slug] ?? category.name;
+}
+
+export function getTransactionTypeDisplayLabel(transactionType: TransactionType): string {
+  return transactionType === "sale" ? "Bán" : "Cho thuê";
+}
+
 export function getSiteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 }
@@ -79,7 +113,15 @@ export function buildLandingWhere(context: SeoLandingContext): Prisma.ListingWhe
 }
 
 export function getLandingTitle(context: SeoLandingContext): string {
-  const subject = context.category?.name ?? (context.transactionType === "sale" ? "Nhà đất bán" : "Nhà đất cho thuê");
+  const transactionLabel = context.transactionType === "sale" ? "Bán" : "Cho thuê";
+  const categoryLabel = context.category
+    ? getCategoryDisplayLabel(context.category)
+        .replace(/^(Bán|Cho thuê)\s+/, "")
+        .replace(/^./, (char) => char.toUpperCase())
+    : null;
+  const subject = categoryLabel
+    ? `${transactionLabel}/${categoryLabel}`
+    : getTransactionTypeDisplayLabel(context.transactionType);
   return context.location ? `${subject} tại ${context.location.fullName}` : subject;
 }
 
@@ -273,4 +315,47 @@ function resolveCategoryLocationLanding(slug: string, categories: TaxonomyCatego
 
 function normalizeSlug(slug: string): string {
   return slug.trim().toLowerCase().replace(/^\/+|\/+$/g, "");
+}
+
+export type ProjectSeoContext = {
+  slug: string;
+  category: Pick<Category, "id" | "name" | "slug"> | null;
+};
+
+export const projectCategoryLabelBySlug: Record<string, string> = {
+  "du-an-can-ho-chung-cu": "Căn hộ chung cư",
+  "du-an-cao-oc-van-phong": "Cao ốc văn phòng",
+  "du-an-trung-tam-thuong-mai": "Trung tâm thương mại",
+  "du-an-khu-do-thi-moi": "Khu đô thị mới",
+  "du-an-khu-phuc-hop": "Khu phức hợp",
+  "du-an-nha-o-xa-hoi": "Nhà ở xã hội",
+  "du-an-nghi-duong-sinh-thai": "Khu nghỉ dưỡng, sinh thái",
+  "du-an-khu-cong-nghiep": "Khu công nghiệp",
+  "du-an-biet-thu-lien-ke": "Biệt thự, liền kề",
+  "du-an-shophouse": "Shophouse",
+  "du-an-nha-mat-pho": "Nhà mặt phố",
+  "du-an-khac": "Dự án khác",
+};
+
+export function getProjectCategoryDisplayLabel(category: { slug: string; name: string }): string {
+  return projectCategoryLabelBySlug[category.slug] ?? category.name;
+}
+
+export function getProjectLandingTitle(context: ProjectSeoContext): string {
+  const subject = context.category ? `Dự án ${getProjectCategoryDisplayLabel(context.category).toLowerCase()}` : "Dự án bất động sản";
+  return subject;
+}
+
+export function getProjectLandingDescription(context: ProjectSeoContext): string {
+  return `${getProjectLandingTitle(context)}: cập nhật thông tin dự án mới nhất, vị trí, tiến độ, giá bán và chủ đầu tư trên Anshome.`;
+}
+
+export async function resolveProjectLanding(slug: string): Promise<ProjectSeoContext | null> {
+  const normalized = slug.trim().toLowerCase().replace(/^\/+|\/+$/g, "");
+  if (!normalized || normalized.includes("/")) return null;
+  const category = await db.category.findFirst({
+    where: { slug: normalized, transactionType: "both", isActive: true },
+    select: { id: true, name: true, slug: true },
+  });
+  return category ? { slug: normalized, category } : null;
 }

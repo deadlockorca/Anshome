@@ -1,153 +1,17 @@
 import Link from "next/link";
-import { headers } from "next/headers";
-import { HomeAuthModal } from "@/components/auth/home-auth-modal";
 import { HomeSearch } from "@/components/home-search";
-import { MobileMenuDrawer } from "@/components/mobile-menu-drawer";
-import { MobileStickySearch } from "@/components/mobile-sticky-search";
 import { PropertyGuideCarousel } from "@/components/property-guide-carousel";
 import { SeoLinkGroupColumn } from "@/components/seo-link-group-column";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter, LogoMark } from "@/components/site-footer";
 import SpotlightNews, { type SpotlightSection } from "@/components/spotlight-news";
 import { db } from "@/lib/db";
+import { publishDueScheduledArticles } from "@/lib/articles/publish";
 import type { Prisma } from "@/generated/prisma/client";
+import { buildListingDetailPath } from "@/lib/listing-url";
 
-type HeaderSubmenuItem = {
-  label: string;
-  href: string;
-};
+export const dynamic = "force-dynamic";
 
-type HeaderMenuItem = {
-  label: string;
-  href: string;
-  submenu?: HeaderSubmenuItem[];
-};
-
-const leftMenu: HeaderMenuItem[] = [
-  {
-    label: "Nhà đất bán",
-    href: "/nha-dat-ban",
-    submenu: [
-      { label: "Bán căn hộ chung cư", href: "/ban-can-ho-chung-cu" },
-      { label: "Bán chung cư mini, căn hộ dịch vụ", href: "/ban-chung-cu-mini" },
-      { label: "Bán nhà riêng", href: "/ban-nha-rieng" },
-      { label: "Bán nhà biệt thự, liền kề", href: "/ban-biet-thu-lien-ke" },
-      { label: "Bán nhà mặt phố", href: "/ban-nha-mat-pho" },
-      { label: "Bán shophouse, nhà phố thương mại", href: "/ban-shophouse" },
-      { label: "Bán đất nền dự án", href: "/ban-dat-nen-du-an" },
-      { label: "Bán đất", href: "/ban-dat" },
-      { label: "Bán trang trại, khu nghỉ dưỡng", href: "/ban-trang-trai" },
-      { label: "Bán condotel", href: "/ban-condotel" },
-      { label: "Bán kho, nhà xưởng", href: "/ban-kho-xuong" },
-      { label: "Bán loại bất động sản khác", href: "/ban-bat-dong-san-khac" },
-    ],
-  },
-  {
-    label: "Nhà đất cho thuê",
-    href: "/nha-dat-cho-thue",
-    submenu: [
-      { label: "Cho thuê căn hộ chung cư", href: "/cho-thue-can-ho-chung-cu" },
-      { label: "Cho thuê chung cư mini, căn hộ dịch vụ", href: "/cho-thue-chung-cu-mini" },
-      { label: "Cho thuê nhà riêng", href: "/cho-thue-nha-rieng" },
-      { label: "Cho thuê nhà biệt thự, liền kề", href: "/cho-thue-biet-thu-lien-ke" },
-      { label: "Cho thuê nhà mặt phố", href: "/cho-thue-nha-mat-pho" },
-      { label: "Cho thuê shophouse, nhà phố thương mại", href: "/cho-thue-shophouse" },
-      { label: "Cho thuê nhà trọ, phòng trọ", href: "/cho-thue-phong-tro" },
-      { label: "Cho thuê văn phòng", href: "/cho-thue-van-phong" },
-      { label: "Cho thuê, sang nhượng cửa hàng, ki ốt", href: "/cho-thue-cua-hang-ki-ot" },
-      { label: "Cho thuê kho, nhà xưởng, đất", href: "/cho-thue-kho-xuong-dat" },
-      { label: "Cho thuê loại bất động sản khác", href: "/cho-thue-bat-dong-san-khac" },
-    ],
-  },
-  {
-    label: "Dự án",
-    href: "/du-an",
-    submenu: [
-      { label: "Căn hộ chung cư", href: "/du-an-can-ho-chung-cu" },
-      { label: "Cao ốc văn phòng", href: "/du-an-cao-oc-van-phong" },
-      { label: "Trung tâm thương mại", href: "/du-an-trung-tam-thuong-mai" },
-      { label: "Khu đô thị mới", href: "/du-an-khu-do-thi-moi" },
-      { label: "Khu phức hợp", href: "/du-an-khu-phuc-hop" },
-      { label: "Nhà ở xã hội", href: "/du-an-nha-o-xa-hoi" },
-      { label: "Khu nghỉ dưỡng, sinh thái", href: "/du-an-nghi-duong-sinh-thai" },
-      { label: "Khu công nghiệp", href: "/du-an-khu-cong-nghiep" },
-      { label: "Biệt thự, liền kề", href: "/du-an-biet-thu-lien-ke" },
-      { label: "Shophouse", href: "/du-an-shophouse" },
-      { label: "Nhà mặt phố", href: "/du-an-nha-mat-pho" },
-      { label: "Dự án khác", href: "/du-an-khac" },
-    ],
-  },
-  {
-    label: "Tin tức",
-    href: "/tin-tuc",
-  },
-  {
-    label: "Wiki BĐS",
-    href: "/wiki",
-    submenu: [
-      { label: "Mua BĐS", href: "/wiki/mua-bat-dong-san" },
-      { label: "Bán BĐS", href: "/wiki/ban-bat-dong-san" },
-      { label: "Thuê BĐS", href: "/wiki/thue-bat-dong-san" },
-      { label: "Tài chính BĐS", href: "/wiki/tai-chinh-bat-dong-san" },
-      { label: "Quy hoạch - Pháp lý", href: "/wiki/quy-hoach-phap-ly" },
-      { label: "Nội - Ngoại thất", href: "/wiki/noi-ngoai-that" },
-      { label: "Phong tục", href: "/wiki/phong-tuc" },
-    ],
-  },
-  {
-    label: "Phân tích đánh giá",
-    href: "/phan-tich-danh-gia",
-    submenu: [
-      { label: "Báo cáo thị trường", href: "/phan-tich-danh-gia/bao-cao-thi-truong" },
-      { label: "Phân tích khu vực", href: "/phan-tich-danh-gia/phan-tich-khu-vuc" },
-      { label: "Tư vấn đầu tư", href: "/phan-tich-danh-gia/tu-van-dau-tu" },
-      { label: "So sánh dự án", href: "/phan-tich-danh-gia/so-sanh-du-an" },
-    ],
-  },
-  {
-    label: "Danh bạ",
-    href: "/danh-ba",
-    submenu: [
-      { label: "Nhà môi giới", href: "/danh-ba/nha-moi-gioi" },
-      { label: "Doanh nghiệp BĐS", href: "/danh-ba/doanh-nghiep-bat-dong-san" },
-      { label: "Chủ đầu tư", href: "/danh-ba/chu-dau-tu" },
-      { label: "Đơn vị thiết kế", href: "/danh-ba/don-vi-thiet-ke" },
-    ],
-  },
-];
-
-const footerContacts = [
-  {
-    label: "Hotline",
-    value: "(+84) 901 827 555",
-    href: "tel:+84901827555",
-    icon: "phone",
-  },
-  {
-    label: "Hỗ trợ khách hàng",
-    value: "trogiup.anshome.vn",
-    href: "/ho-tro",
-    icon: "support",
-  },
-  {
-    label: "Chăm sóc khách hàng",
-    value: "hotro@anshome.vn",
-    href: "mailto:hotro@anshome.vn",
-    icon: "mailbox",
-  },
-] as const;
-const footerGuideLinks = [
-  { label: "Về chúng tôi", href: "/ve-chung-toi" },
-  { label: "Báo giá và hỗ trợ", href: "/bao-gia" },
-  { label: "Câu hỏi thường gặp", href: "/cau-hoi-thuong-gap" },
-  { label: "Góp ý báo lỗi", href: "/gop-y-bao-loi" },
-  { label: "Sitemap", href: "/trang-sitemap" },
-];
-const footerPolicyLinks = [
-  { label: "Quy định đăng tin", href: "/quy-dinh-dang-tin" },
-  { label: "Quy chế hoạt động", href: "/quy-che-hoat-dong" },
-  { label: "Điều khoản thỏa thuận", href: "/dieu-khoan-thoa-thuan" },
-  { label: "Chính sách bảo mật", href: "/chinh-sach-bao-mat" },
-  { label: "Giải quyết khiếu nại", href: "/giai-quyet-khieu-nai" },
-];
 const homeListingInclude = {
   category: {
     select: {
@@ -587,67 +451,6 @@ const spotlightSections: SpotlightSection[] = [
   },
 ];
 
-function normalizeOrigin(origin: string): string {
-  return origin.replace(/\/+$/, "");
-}
-
-function resolveWikiOrigin(requestHeaders: Headers): string {
-  const envOrigin = process.env.NEXT_PUBLIC_WIKI_ORIGIN?.trim();
-  if (envOrigin) {
-    return normalizeOrigin(envOrigin);
-  }
-
-  const rawHost =
-    requestHeaders.get("x-forwarded-host")?.split(",")[0].trim() ??
-    requestHeaders.get("host")?.split(",")[0].trim() ??
-    "localhost:3000";
-
-  const rawProto =
-    requestHeaders.get("x-forwarded-proto")?.split(",")[0].trim().replace(/:$/, "") ?? "http";
-
-  let hostname = "localhost";
-  let port = "";
-
-  try {
-    const parsed = new URL(`http://${rawHost}`);
-    hostname = parsed.hostname;
-    port = parsed.port ? `:${parsed.port}` : "";
-  } catch {
-    const [fallbackHost = "localhost", fallbackPort] = rawHost.split(":");
-    hostname = fallbackHost;
-    port = fallbackPort ? `:${fallbackPort}` : "";
-  }
-
-  const baseHost = hostname.startsWith("wiki.") ? hostname.slice(5) : hostname;
-  const wikiHost =
-    baseHost === "localhost" || baseHost === "127.0.0.1" || baseHost === "::1" ? "wiki.localhost" : `wiki.${baseHost}`;
-
-  return `${rawProto}://${wikiHost}${port}`;
-}
-
-function buildWikiHref(href: string, wikiOrigin: string): string {
-  const path = href === "/wiki" ? "/" : href.replace(/^\/wiki(?=\/|$)/, "");
-  return `${wikiOrigin}${path}`;
-}
-
-function LogoMark() {
-  return (
-    <svg
-      aria-hidden
-      width="46"
-      height="46"
-      viewBox="0 0 46 46"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="logo-mark"
-    >
-      <path d="M8 22L23 8L38 22" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M8 31L23 17L38 31" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M8 40L23 26L38 40" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function HeartIcon() {
   return (
     <svg
@@ -685,90 +488,6 @@ function PhotoIcon() {
       <rect x="3.8" y="5" width="16.4" height="14" rx="2" stroke="currentColor" strokeWidth="1.8" />
       <circle cx="8.6" cy="9.4" r="1.5" stroke="currentColor" strokeWidth="1.8" />
       <path d="M5.7 17.2L10.2 13L13.1 15.6L15 13.7L18.4 17.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg
-      aria-hidden
-      width="14"
-      height="14"
-      viewBox="0 0 14 14"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="nav-caret"
-    >
-      <path d="M3 5.25L7 9.25L11 5.25" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function FooterIcon({ icon }: { icon: "phone" | "support" | "mailbox" | "pin" }) {
-  if (icon === "phone") {
-    return (
-      <svg aria-hidden width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7.2 4.4L9.1 8.5L6.9 10.1C8 12.6 10 14.6 12.5 15.8L14.2 13.6L18.2 15.5L17.6 18.8C17.5 19.6 16.8 20.2 16 20.2C9.2 20.2 3.8 14.8 3.8 8C3.8 7.2 4.4 6.5 5.2 6.4L7.2 4.4Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M14.2 4.4C16.8 4.8 18.8 6.8 19.2 9.4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        <path d="M14.2 7.4C15.2 7.7 15.9 8.4 16.2 9.4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (icon === "support") {
-    return (
-      <svg aria-hidden width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="9" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.7" />
-        <path d="M3.8 19.6C4.4 16.5 6.3 14.8 9 14.8C10.3 14.8 11.4 15.2 12.3 15.9" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        <path d="M15.5 6.3C16.1 5.5 17 5 18.1 5C19.9 5 21.2 6.2 21.2 7.9C21.2 9.5 20.1 10.2 18.9 10.7V12.1" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M18.9 15.7V15.8" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  if (icon === "mailbox") {
-    return (
-      <svg aria-hidden width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M4.2 19V9.4C4.2 7.4 5.8 5.8 7.8 5.8H15.8C17.8 5.8 19.4 7.4 19.4 9.4V19" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M4.2 10.2H19.4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        <path d="M8.7 5.8V19" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-        <path d="M15.4 13.2H22" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg aria-hidden width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 21S5.7 15.6 5.7 10.3C5.7 6.7 8.5 3.9 12 3.9C15.5 3.9 18.3 6.7 18.3 10.3C18.3 15.6 12 21 12 21Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-      <circle cx="12" cy="10.3" r="2.2" stroke="currentColor" strokeWidth="1.8" />
-    </svg>
-  );
-}
-
-function SendIcon() {
-  return (
-    <svg aria-hidden width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20.7 3.7L10.3 14.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M20.7 3.7L14.1 20.3L10.3 14.1L3.7 10.3L20.7 3.7Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function GlobeIcon() {
-  return (
-    <svg aria-hidden width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M3.5 12H20.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M12 3C14.2 5.4 15.4 8.4 15.4 12C15.4 15.6 14.2 18.6 12 21C9.8 18.6 8.6 15.6 8.6 12C8.6 8.4 9.8 5.4 12 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChevronSelectIcon() {
-  return (
-    <svg aria-hidden width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -870,12 +589,12 @@ function formatListingCount(count: number): string {
 
 function toDisplayListing(listing: HomeListing): DisplayListing {
   const cover = listing.media.find((item) => item.type === "image") ?? listing.media[0];
-  const location = [listing.district?.fullName, listing.province?.fullName].filter(Boolean).join(", ") || listing.addressText || "Chưa cập nhật vị trí";
+  const location = listing.district?.fullName ?? listing.province?.fullName ?? listing.addressText ?? "Chưa cập nhật vị trí";
   const area = formatDecimal(listing.area);
 
   return {
     id: listing.id,
-    href: `/tin-dang/${listing.publicId}`,
+    href: buildListingDetailPath(listing),
     title: listing.title,
     imageUrl: cover?.type === "image" ? cover.media.publicUrl : null,
     imageAlt: cover?.caption ?? listing.title,
@@ -889,7 +608,7 @@ function toDisplayListing(listing: HomeListing): DisplayListing {
 
 function toDisplayProject(project: FeaturedProject): DisplayProject {
   const cover = project.media.find((item) => item.media.status === "approved") ?? project.media[0];
-  const location = [project.district?.fullName, project.province?.fullName].filter(Boolean).join(", ") || project.addressText || "Đang cập nhật";
+  const location = project.district?.fullName ?? project.province?.fullName ?? project.addressText ?? "Đang cập nhật";
   const price = formatProjectPrice(project.priceMin, project.priceUnit);
   const scale = formatProjectScale(project.landArea);
   const priceAndScale = [price, scale].filter(Boolean).join(" · ") || location;
@@ -995,7 +714,7 @@ function RecommendedListings({ listings }: { listings: HomeListing[] }) {
               ))}
             </div>
             <div className="home-listings-more-wrap">
-              <Link href="/tin-dang" className="home-listings-more">
+              <Link href="/nha-dat-ban" className="home-listings-more">
                 Xem tiếp
               </Link>
             </div>
@@ -1264,100 +983,6 @@ function SeoDirectorySection() {
   );
 }
 
-function SiteFooter() {
-  return (
-    <footer className="site-footer">
-      <div className="stage-shell site-footer-shell">
-        <div className="footer-top">
-          <Link href="/" className="footer-brand" aria-label="Anshome">
-            <LogoMark />
-            <div className="footer-brand-text">
-              <p className="footer-brand-main">Anshome</p>
-              <p className="footer-brand-sub">nền tảng bất động sản</p>
-            </div>
-          </Link>
-
-          <div className="footer-contact-strip" aria-label="Thông tin liên hệ nhanh">
-            {footerContacts.map((contact) => (
-              <Link key={contact.label} href={contact.href} className="footer-contact-card">
-                <FooterIcon icon={contact.icon} />
-                <span>
-                  <span className="footer-contact-label">{contact.label}</span>
-                  <strong>{contact.value}</strong>
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div className="footer-grid">
-          <div className="footer-company">
-            <h2>Công ty cổ phần Anshome Việt Nam</h2>
-            <ul className="footer-company-list">
-              <li>
-                <FooterIcon icon="pin" />
-                <span>Tầng 31, Keangnam Hanoi Landmark Tower, Phường Yên Hòa, Thành phố Hà Nội, Việt Nam</span>
-              </li>
-              <li>
-                <FooterIcon icon="phone" />
-                <a href="tel:+84901827555">(+84) 901 827 555</a>
-              </li>
-            </ul>
-
-          </div>
-
-          <FooterLinkColumn title="Hướng dẫn" links={footerGuideLinks} />
-          <FooterLinkColumn title="Quy định" links={footerPolicyLinks} />
-
-          <div className="footer-actions">
-            <section aria-labelledby="footer-newsletter-title">
-              <h2 id="footer-newsletter-title">Đăng ký nhận tin</h2>
-              <form className="footer-newsletter">
-                <label className="sr-only" htmlFor="footer-email">
-                  Email nhận tin
-                </label>
-                <input id="footer-email" type="email" placeholder="Nhập email của bạn" />
-                <button type="submit" aria-label="Đăng ký nhận tin">
-                  <SendIcon />
-                </button>
-              </form>
-            </section>
-
-            <section aria-labelledby="footer-locale-title">
-              <h2 id="footer-locale-title">Quốc gia &amp; ngôn ngữ</h2>
-              <button type="button" className="footer-locale-select">
-                <GlobeIcon />
-                <span>Việt Nam</span>
-                <ChevronSelectIcon />
-              </button>
-            </section>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-function FooterLinkColumn({ title, links }: { title: string; links: Array<{ label: string; href: string }> }) {
-  return (
-    <nav className="footer-link-column" aria-label={title}>
-      <h2>
-        <span>{title}</span>
-        <svg aria-hidden viewBox="0 0 24 24" className="footer-link-column-chevron">
-          <path d="M9 5L16 12L9 19" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </h2>
-      <ul>
-        {links.map((link) => (
-          <li key={link.label}>
-            <Link href={link.href}>{link.label}</Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-}
-
 function MobileQuickActions() {
   const actions = [
     { label: "Mua bán", href: "/nha-dat-ban", image: "/mobile-actions/shortcut-for-sell.svg" },
@@ -1379,10 +1004,9 @@ function MobileQuickActions() {
 }
 
 export default async function Home() {
-  const requestHeaders = await headers();
-  const wikiOrigin = resolveWikiOrigin(requestHeaders);
+  await publishDueScheduledArticles();
   const locationSlugs = locationHighlights.map((location) => location.slug);
-  const [listings, projects, provinces, articles] = await Promise.all([
+  const [listings, projects, provinces, articles, locations, categories] = await Promise.all([
     db.listing.findMany({
       where: {
         status: "published",
@@ -1422,10 +1046,37 @@ export default async function Home() {
         },
       },
       orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-      take: 3,
+      take: 7,
       include: newsArticleInclude,
     }),
+    db.location.findMany({
+      where: { isActive: true },
+      select: { id: true, fullName: true, slug: true, type: true, parentId: true },
+    }),
+    db.category.findMany({
+      where: { isActive: true, transactionType: { in: ["sale", "rent"] } },
+      select: { id: true, slug: true, transactionType: true, name: true },
+    }),
   ]);
+  const newestArticle = articles[0];
+  const latestSpotlightSections: SpotlightSection[] = newestArticle
+    ? [
+        {
+          label: "Tin mới nhất",
+          moreHref: "/tin-tuc",
+          featured: {
+            title: newestArticle.title,
+            href: `/tin-tuc/${newestArticle.slug}`,
+            image: articleImageFallbacks[newestArticle.slug] ?? newestArticle.coverMedia?.publicUrl ?? "/news-vietnam-land.svg",
+            published: formatNewsPublishedDate(newestArticle.publishedAt),
+          },
+          items: articles.slice(1, 7).map((article) => ({
+            title: article.title,
+            href: `/tin-tuc/${article.slug}`,
+          })),
+        },
+      ]
+    : spotlightSections;
   const listingCountsByProvince = provinces.length
     ? await db.listing.groupBy({
         by: ["provinceId"],
@@ -1460,89 +1111,23 @@ export default async function Home() {
     ];
   });
 
-  const menuItems = leftMenu.map((item) => {
-    if (item.label !== "Wiki BĐS") {
-      return item;
-    }
-
-    return {
-      ...item,
-      href: buildWikiHref(item.href, wikiOrigin),
-      submenu: item.submenu?.map((subItem) => ({
-        ...subItem,
-        href: buildWikiHref(subItem.href, wikiOrigin),
-      })),
-    };
-  });
-
   return (
     <div className="stage-root">
-      <header className="stage-header">
-        <div className="stage-shell stage-header-inner">
-          <div className="header-left">
-            <Link href="/" className="brand-wrap" aria-label="Anshome">
-              <LogoMark />
-              <div className="brand-text">
-                <p className="brand-main">Anshome</p>
-                <p className="brand-sub">nền tảng BĐS</p>
-              </div>
-            </Link>
-
-            <nav className="main-nav" aria-label="Điều hướng chính">
-              {menuItems.map((item) => {
-                const submenu = item.submenu ?? [];
-                const hasSubmenu = submenu.length > 0;
-
-                return (
-                  <div key={item.label} className="nav-item">
-                    <Link href={item.href} className="nav-link" aria-haspopup={hasSubmenu ? "menu" : undefined}>
-                      <span>{item.label}</span>
-                      {hasSubmenu ? <ChevronDownIcon /> : null}
-                    </Link>
-
-                    {hasSubmenu ? (
-                      <div className="nav-dropdown" role="menu" aria-label={item.label}>
-                        {submenu.map((subItem) => (
-                          <Link key={subItem.label} href={subItem.href} className="nav-dropdown-link" role="menuitem">
-                            {subItem.label}
-                          </Link>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </nav>
-          </div>
-
-          <MobileStickySearch />
-
-          <div className="header-right">
-            <button type="button" className="icon-btn" aria-label="Yêu thích">
-              <HeartIcon />
-            </button>
-            <HomeAuthModal />
-            <Link href="/sellernet/trang-dang-nhap?redirect=true&returnurl=%2Ftai-khoan%2Ftin-dang%2Ftao-moi" className="post-btn">
-              Đăng tin
-            </Link>
-            <MobileMenuDrawer />
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="hero-zone">
-        <HomeSearch />
+        <HomeSearch locations={locations} categories={categories} />
         <span className="mobile-hero-mark" aria-hidden>
           <LogoMark />
         </span>
       </main>
 
       <MobileQuickActions />
-      <SpotlightNews sections={spotlightSections} />
+      <SpotlightNews sections={latestSpotlightSections} />
       <RecommendedListings listings={listings} />
       <FeaturedProjectsSection projects={projects} />
       <LocationsSection locations={highlightedLocations} />
-      <NewsSection articles={articles} />
+      <NewsSection articles={articles.slice(0, 3)} />
       <UtilitiesSection />
       <PropertyGuideSection />
       <SeoDirectorySection />
